@@ -8,7 +8,15 @@
 
 // 俄罗斯方块
 
+// 生命游戏
+
+// 贪吃蛇
+
 // 摄像头
+
+// base64 编解码库
+
+// lua 和 ADC 输入两个问题没解决
 
 #include <span>
 #include <functional>
@@ -18,6 +26,8 @@
 #include <cmath>
 #include <ctime>
 // #include <string>
+
+#include "lua.hpp"
 
 #include "hardware_timer.h"
 #include "oled.h"
@@ -41,24 +51,7 @@ extern const unsigned short test_img_128x128[][128];
 
 
 
-
-const uint8_t pic[] = {
-	0x00,0x00,0x00,0x10,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x28,0x10,0x28,0x00,0x00,0x00,
-	0x00,0x44,0x28,0x10,0x28,0x44,0x00,0x00,
-	0x82,0x44,0x28,0x10,0x28,0x44,0x82,0x00,
-	0x82,0x44,0x00,0x10,0x00,0x44,0x82,0x00,
-	0x82,0x00,0x10,0x38,0x10,0x00,0x82,0x00,
-	0x00,0x10,0x10,0x6c,0x10,0x10,0x00,0x00,
-	0x10,0x10,0x00,0xc6,0x00,0x10,0x10,0x00,
-	0x10,0x00,0x00,0x82,0x00,0x00,0x10,0x00,
-	0x00,0x00,0x00,0x10,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x10,0x28,0x10,0x00,0x00,0x00,
-	0x00,0x54,0x10,0x7c,0x10,0x54,0x00,0x00,
-	0x92,0x54,0x10,0xee,0x10,0x54,0x92,0x00,
-	0x92,0x10,0x00,0xc6,0x00,0x10,0x92,0x00,
-	0x10,0x00,0x00,0x82,0x00,0x00,0x10,0x00
-};
+#include "alert.hpp"
 
 
 #include "animation.hpp"
@@ -71,22 +64,8 @@ int time_minutes = 10;
 int time_hours = 10;
 int time_seconds = 45;
 
-#include "qrcode.h"
-
-typedef const char* strss;
-extern strss verb[];
-extern strss adj[];
-extern strss noun[];
-
-// void dataUpdate(void* argument) {
-
-// 	while (true) {
-// 		aaa = rand () % 112;
-// 		bbb = rand () % 115;
-// 		ccc = rand () % 180;
-// 		vTaskDelay(2000);
-// 	}
-// }
+#include "qrcode.hpp"
+#include "modern_art_generator.hpp"
 
 int count = 0;
 
@@ -145,10 +124,32 @@ char buf[128];
 
 
 
+int lua_flip_LED(lua_State *L) {
+	flip(LED);
+	return 0;
+}
+
 
 extern "C" void led0_task(void* argument) {
+
+
+	// auto L = luaL_newstate();
+	// // bLua::reg_global_func(L, "flip_LED1", lua_flip_LED1);
+	// // bLua::reg_global_func(L, "delay", HAL_Delay);
+	// luaL_openlibs(L);
+
+	// lua_register(L, "flip_LED", lua_flip_LED);
+
+	// const char* test = R"(
+	// 	function test()
+	// 		flip_LED()
+	// 	end
+	// )";
+
 	while (true) {
 		flip(LED);
+
+		// luaL_dostring(L, test);
 		time_seconds++;
 		vTaskDelay(500);
 	}
@@ -187,27 +188,36 @@ void ips_func(void* argument) {
 	// tbz::tft::st7735::init();
 	// vTaskDelay(100);
 	tbz::tft::st7735::fillScreen(tbz::tft::st7735::COLOR::BLACK);
+	int i = 0;
+	uint16_t c[] { 0x0000,0x001F,0xF800,0x07E0,0x07FF,0xF81F,0xFFE0,0xFFFF };
 	while (true) {
+		// 依次使用各种背景颜色
+		// tbz::tft::st7735::fillScreen(c[i++]);
+		// i %= sizeof(c)/sizeof(c[0]);
+
 		tbz::tft::st7735::writeString(0, 0, "pressed:42", Font_11x18, tbz::tft::st7735::COLOR::WHITE, tbz::tft::st7735::COLOR::MAGENTA);
 		vTaskDelay(50);
 	}
 
 }
 
-extern int aaa, bbb, ccc;
-extern "C" void get_art_index_random(void);
 
 using str = const char*;
 str ui_list[] = {
 	"[ Setting ]",
-	"~ Disp Brightness",
+	"~ Disp Bri",
 	"~ List Cur",
 	"~ List Ani",
-	"~ Min Ani",
+	"~ Win Ani",
 	"~ Fade Ani",
 	"~ Btn SPT",
-	"~ BtN LPT",
-	"+ L ufd Fm Scr"
+	"~ Btn LPT",
+	"+ L Ufd Fm Scr",
+	"+ L Loop Mode",
+	"+ Win Bokeh Bg",
+	"+ Knob Rot Dir",
+	"+ Dark Mode",
+	"- [ About ]",
 };
 
 
@@ -218,6 +228,7 @@ enum class NOW_SCENE {
 	art_generator,
 	ui_test,
 	ui_test2,
+	ui_test3,
 	fade_animation,
 	alert,
 	animation1,
@@ -226,8 +237,6 @@ enum class NOW_SCENE {
 } now_scene = NOW_SCENE::normal_scene, next_scene = NOW_SCENE::unexist_scene;
 
 
-char alert_message[128] {"Hello World!"};
-auto alert_font = u8g2_font_wqy16_t_gb2312;
 // u8g2_font_NokiaSmallBold_tf
 /**
  * @brief 绘制图片，左上角为原点，自动读取图片大小
@@ -239,86 +248,8 @@ void draw_pic(U8G2* u8g2, uint8_t x, uint8_t y, const uint8_t* pic) {
 		pic2xbmp(pic));
 }
 
-void erase1(U8G2* u8g2) {
-	// 保存绘制状态
-	auto color = u8g2 -> getDrawColor();
-	u8g2 -> setDrawColor(0);
-	for(int i = 0; i < 128; i++)
-	for(int j = 0; j < 128; j++)
-	if (i&1 && j&1) u8g2 -> drawPixel(i, j);
-	// 恢复绘制状态
-	u8g2 -> setDrawColor(color);
-}
-void erase2(U8G2* u8g2) {
-	// 保存绘制状态
-	auto color = u8g2 -> getDrawColor();
-	u8g2 -> setDrawColor(0);
-	for (int i = 0; i < 128; i++)
-	for (int j = 0; j < 128; j++)
-	if ((i^j)%2) u8g2 -> drawPixel(i, j);
-	// 恢复绘制状态
-	u8g2 -> setDrawColor(color);
-}
-void erase3(U8G2* u8g2) {
-	// 保存绘制状态
-	auto color = u8g2 -> getDrawColor();
-	u8g2 -> setDrawColor(0);
-	for(int i = 0; i < 128; i++)
-	for(int j = 0; j < 128; j++)
-	if (i&1 || j&1) u8g2 -> drawPixel(i, j);
-	// 恢复绘制状态
-	u8g2 -> setDrawColor(color);
-}
-void erase4(U8G2* u8g2) {
-	// 保存绘制状态
-	auto color = u8g2 -> getDrawColor();
-	u8g2 -> setDrawColor(0);
-	u8g2 -> drawBox(0, 0, 128, 128);
-	// 恢复绘制状态
-	u8g2 -> setDrawColor(color);
-}
 
-void swap_animation(U8G2* u8g2) {
-	static enum class ANI {
-		FADE_1, FADE_2, FADE_3, FADE_4
-	} ani = ANI::FADE_1;
-	const int fade_frames = 2;
-	static int count = 0;
-	switch (ani) {
-		case ANI::FADE_1: {
-			erase1(u8g2);
-		} break;
-		case ANI::FADE_2: {
-			erase2(u8g2);
-		} break;
-		case ANI::FADE_3: {
-			erase3(u8g2);
-		} break;
-		case ANI::FADE_4: {
-			erase4(u8g2);
-		} break;
-	}
 
-	count ++;
-	if (count == fade_frames) {
-		count = 0;
-		switch (ani) {
-			case ANI::FADE_1: {
-				ani = ANI::FADE_2;
-			} break;
-			case ANI::FADE_2: {
-				ani = ANI::FADE_3;
-			} break;
-			case ANI::FADE_3: {
-				ani = ANI::FADE_4;
-			} break;
-			case ANI::FADE_4: {
-				ani = ANI::FADE_1;
-				now_scene = next_scene;
-			} break;
-		}
-	}
-}
 
 void fade_to_next_scene(U8G2* u8g2, NOW_SCENE scene) {
 	// swap_animation(u8g2);
@@ -333,9 +264,9 @@ void next_scene_func(NOW_SCENE scene) {
 
 game_hanoi hanoi;
 
-
-tbz::animation<10> ani1(pic, 72, 8, 8, 8, 9);
-tbz::animation<10> ani2(pic+72, 54, 8, 8, 8, 6);
+extern const uint8_t snow_animation_pic[];
+tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 9);
+tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 6);
 
 tbz::round_watch_face rwf;
 
@@ -348,15 +279,7 @@ tbz::SquareWatch sw;
 // Create the QR code
 QRCode qrcode;
 const int qrcode_version = 3;
-namespace tbz {
-	constexpr int get_size_from_version_size(int size) {
-		return (((size * size) + 7) / 8);
-	}
-	constexpr int get_qrcode_BufferSize(int version) {
-		return get_size_from_version_size(4 * version + 17);
-	}
-}
-uint8_t qrcodeData[tbz::get_qrcode_BufferSize(qrcode_version)];
+uint8_t qrcodeData[tbz::qrcode::get_BufferSize(qrcode_version)];
 // uint8_t qrcodeData[512];
 
 void oled_func(void* argument) {
@@ -375,6 +298,7 @@ void oled_func(void* argument) {
 
 	qrcode_initText(&qrcode, qrcodeData, qrcode_version, 0, "HELLO WORLD");
 	// char* sss = (char*)malloc(128);
+
 
 	// ADC 定时采集
 	// HAL_TIM_Base_Start_IT(&htim16);
@@ -396,6 +320,7 @@ void oled_func(void* argument) {
 				}
 			}
 		}
+
 		if (key_pressed_func(10)) {
 			switch (now_scene) {
 				case NOW_SCENE::normal_scene: {
@@ -414,6 +339,9 @@ void oled_func(void* argument) {
 					fade_to_next_scene(&u8g2, NOW_SCENE::ui_test2);
 				} break;
 				case NOW_SCENE::ui_test2: {
+					fade_to_next_scene(&u8g2, NOW_SCENE::ui_test3);
+				} break;
+				case NOW_SCENE::ui_test3: {
 					fade_to_next_scene(&u8g2, NOW_SCENE::animation1);
 				} break;
 				case NOW_SCENE::animation1: {
@@ -428,27 +356,31 @@ void oled_func(void* argument) {
 			}
 		}
 		switch (now_scene) {
+			case NOW_SCENE::ui_test3: {
+				u8g2.drawBox(0,0,20,20);
+				u8g2.drawBox(20,20,20,20);
+				u8g2.sendBuffer();
+				u8g2.drawFrame(10,40,20,20);
+				u8g2.sendBuffer();
+				u8g2.setFont(u8g2_font_DigitalDiscoThin_tf);
+				sprintf(buf,"%d",114514);
+				u8g2.drawStr(0,20,buf);
+			} break;
 			case NOW_SCENE::ui_test2: {
-				const int screen_size = 128;
+				const int screen_width = u8g2.getDisplayWidth();
+				const int screen_height = u8g2.getDisplayHeight();
+				const int screen_size = std::min(screen_width, screen_height);
+
 				auto size = 17+4*qrcode_version;
 				auto scale = screen_size/size;
-				auto offset_x = (screen_size-size*scale)/2;
-				auto offset_y = (screen_size-size*scale)/2;
+
+				auto offset_x = (screen_width-size*scale)/2;
+				auto offset_y = (screen_height-size*scale)/2;
+
 				for (uint8_t y = 0; y < qrcode.size; y++) {
-					// Each horizontal module
 					for (uint8_t x = 0; x < qrcode.size; x++) {
-						// Print each module (UTF-8 \u2588 is a solid block)
-						// Serial.print(qrcode_getModule(&qrcode, x, y) ? "\u2588\u2588": "  ");
 						u8g2.setDrawColor(qrcode_getModule(&qrcode, x, y) ? 1 : 0);
-						for (int i = 0; i < scale; i++) {
-							for (int j = 0; j < scale; j++) {
-								u8g2.drawPixel(offset_x+scale*x+i, offset_y+scale*y+j);
-							}
-						}
-						// u8g2.drawPixel(offset_x+2*x, 2*y+offset_y);
-						// u8g2.drawPixel(offset_x+2*x+1, 2*y+offset_y);
-						// u8g2.drawPixel(offset_x+2*x, 2*y+1+offset_y);
-						// u8g2.drawPixel(offset_x+2*x+1, 2*y+1+offset_y);
+						u8g2.drawBox(offset_x+scale*x, offset_y+scale*y, scale, scale);
 					}
 				}
 				u8g2.setDrawColor(1);
@@ -485,31 +417,10 @@ void oled_func(void* argument) {
 				sw.draw(time_hours, time_minutes, time_seconds);
 			} break;
 			case NOW_SCENE::alert: {
-				erase2(&u8g2);
-				const int8_t offset_x = 4;
-				const int8_t offset_y = -4;
-				const int8_t margin_x = 6;
-				const int8_t margin_y = 6;
-				const uint8_t radius = 2;
-				// u8g2.setFont(u8g2_font_micro_mr);
-				u8g2.setFont(alert_font);
-				auto h = u8g2.getMaxCharHeight();
-				auto w = u8g2.getUTF8Width(alert_message);
-				int x = 64-w/2-3;
-				int y = 64-h/2-3;
-				u8g2.setDrawColor(0);
-				u8g2.drawRBox(x+offset_x, y+offset_y, w+margin_x, h+margin_y, radius);
-				u8g2.setDrawColor(1);
-				u8g2.drawRFrame(x+offset_x, y+offset_y, w+margin_x, h+margin_y, radius);
-				u8g2.drawRBox(x, y, w+margin_x, h+margin_y, radius);
-				u8g2.setDrawColor(2);
-				u8g2.setFontMode(1);
-				u8g2.drawUTF8(x+margin_x/2, y+h-1+margin_y/2, alert_message);
-				u8g2.setDrawColor(1);
-				u8g2.setFontMode(0);
+				tbz::ui::menu::alert::draw(&u8g2);
 			} break;
 			case NOW_SCENE::fade_animation: {
-				swap_animation(&u8g2);
+				tbz::animation::swap_animation(&u8g2, now_scene, next_scene);
 			} break;
 			case NOW_SCENE::START_SCENE: {
 				if (key_pressed_func(1)) {
