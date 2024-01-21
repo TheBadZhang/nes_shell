@@ -1,0 +1,29 @@
+# dot files
+/.vscode/launch.json
+/.settings
+/.eide/log
+/.eide.usr.ctx.json
+
+# project out
+/build
+/bin
+/obj
+/out
+app/Drivers
+app/Middlewares
+app/STM32H7B0VBTx_FLASH.ld
+bootloader/Drivers
+bootloader/Middlewares
+bootloader/STM32H7B0VBTx_FLASH.ld
+
+*.png
+app/Hanoi/res/hanoi_res_oled_128128.aseprite
+
+*.exe
+
+**/startup_stm32h7b0xx.s
+**/Makefile
+
+# eide template
+*.ept
+*.eide-template
