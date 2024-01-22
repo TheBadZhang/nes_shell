@@ -57,9 +57,7 @@
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_spi4_tx;
-extern DMA_HandleTypeDef hdma_spi6_tx;
 extern SPI_HandleTypeDef hspi4;
-extern SPI_HandleTypeDef hspi6;
 extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN EV */
@@ -221,31 +219,17 @@ void SPI4_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles SPI6 global interrupt.
+  * @brief This function handles BDMA2 channel0 global interrupt.
   */
-void SPI6_IRQHandler(void)
+void BDMA2_Channel0_IRQHandler(void)
 {
-  /* USER CODE BEGIN SPI6_IRQn 0 */
+  /* USER CODE BEGIN BDMA2_Channel0_IRQn 0 */
 
-  /* USER CODE END SPI6_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi6);
-  /* USER CODE BEGIN SPI6_IRQn 1 */
+  /* USER CODE END BDMA2_Channel0_IRQn 0 */
 
-  /* USER CODE END SPI6_IRQn 1 */
-}
+  /* USER CODE BEGIN BDMA2_Channel0_IRQn 1 */
 
-/**
-  * @brief This function handles BDMA2 channel2 global interrupt.
-  */
-void BDMA2_Channel2_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA2_Channel2_IRQn 0 */
-
-  /* USER CODE END BDMA2_Channel2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi6_tx);
-  /* USER CODE BEGIN BDMA2_Channel2_IRQn 1 */
-
-  /* USER CODE END BDMA2_Channel2_IRQn 1 */
+  /* USER CODE END BDMA2_Channel0_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

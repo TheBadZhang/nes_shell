@@ -53,17 +53,20 @@
 ENTRY(Reset_Handler)
 
 /* Highest address of the user mode stack */
-_estack = ORIGIN(DTCMRAM) + LENGTH(DTCMRAM);    /* end of RAM */
+/* _estack = ORIGIN(DTCMRAM) + LENGTH(DTCMRAM);    end of RAM */
+_estack = ORIGIN(RAM) + LENGTH(RAM);    /* end of RAM */
 /* Generate a link error if heap and stack don't fit into RAM */
-_Min_Heap_Size = 0x200;      /* required amount of heap  */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Heap_Size = 0x800;      /* required amount of heap  */
+_Min_Stack_Size = 0x800; /* required amount of stack */
 
 /* Specify the memory areas */
 MEMORY
 {
 DTCMRAM (xrw)     : ORIGIN = 0x20000000, LENGTH = 128K
-RAM (xrw)         : ORIGIN = 0x24000000, LENGTH = 1024K
 ITCMRAM (xrw)     : ORIGIN = 0x00000000, LENGTH = 64K
+RAM (xrw)         : ORIGIN = 0x24000000, LENGTH = 1024K
+BDMA_RAM (xrw)    : ORIGIN = 0x30000000, LENGTH = 128K
+BDMA2_RAM (xrw)   : ORIGIN = 0x38000000, LENGTH = 32K
 FLASH (rx)        : ORIGIN = 0x90000000, LENGTH = 8192K
 /* EX_FLASH(rx)      : ORIGIN = 0x90000000, LENGTH = 8192K */
 }
@@ -71,6 +74,30 @@ FLASH (rx)        : ORIGIN = 0x90000000, LENGTH = 8192K
 /* Define output sections */
 SECTIONS
 {
+
+    /* external sram data, do not initialize at startup  */
+  .bdma_sram(NOLOAD) :
+  {
+    . = ALIGN(4);
+    _sbdma_sram = .;        /* create a global symbol at ext_sram start */
+    *(.bdma_sram)
+    *(.bdma_sram*)
+
+    . = ALIGN(4);
+    _ebdma_sram = .;        /* define a global symbol at ext_sram end */
+  } >BDMA_RAM AT> FLASH
+
+  .bdma2_sram(NOLOAD) :
+  {
+    . = ALIGN(4);
+    _sbdma2_sram = .;        /* create a global symbol at ext_sram start */
+    *(.bdma2_sram)
+    *(.bdma2_sram*)
+
+    . = ALIGN(4);
+    _ebdma2_sram = .;        /* define a global symbol at ext_sram end */
+  } >BDMA2_RAM AT> FLASH
+
   /* The startup code goes first into FLASH */
   .isr_vector :
   {

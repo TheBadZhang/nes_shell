@@ -152,7 +152,6 @@
         "app/src",
         "bootloader/src/w25q/w25qxx.c",
         "bootloader/src/w25q/w25q64.cc",
-        "codebase/lib/u8g2",
         "codebase/lib/CherryUSB",
         "<virtual_root>/startup",
         "bootloader/src/w25q2",
@@ -160,7 +159,9 @@
         "codebase/w25q/w25q64.cc",
         "codebase/w25q/bsp_qspi_w25q128.c",
         "app/Drivers",
-        "app/startup_stm32h7b0xx.s"
+        "app/startup_stm32h7b0xx.s",
+        "codebase/ui",
+        "codebase/app"
       ],
       "toolchain": "GCC",
       "compileConfig": {

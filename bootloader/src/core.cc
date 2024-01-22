@@ -162,9 +162,22 @@ static void JumpToApp(void) {
 	}
 }
 
+// #include "oled.h"
+
+// uint32_t g_address = 0;
 
 void core(void) {
 
+
+	// U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
+	// // U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
+	// u8g2.begin();
+
+	// u8g2.setFont(u8g2_font_6x10_tf);
+	// sprintf(buf, "address:%X", g_address);
+	// u8g2.drawStr(0, 10, buf);
+
+	// u8g2.sendBuffer();
 	tbz::tft::st7735::init();
 	tbz::tft::st7735::fillScreen(tbz::tft::st7735::COLOR::BLACK);
 	tbz::tft::st7735::writeString(0, 0, "Hello World!", Font_7x10, tbz::tft::st7735::COLOR::WHITE, tbz::tft::st7735::COLOR::BLACK);

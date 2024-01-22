@@ -73,6 +73,12 @@ void Error_Handler(void);
 #define SDA1_GPIO_Port GPIOE
 #define RST1_Pin GPIO_PIN_15
 #define RST1_GPIO_Port GPIOE
+#define M_RST_Pin GPIO_PIN_0
+#define M_RST_GPIO_Port GPIOD
+#define M_CS_Pin GPIO_PIN_5
+#define M_CS_GPIO_Port GPIOD
+#define M_DC_Pin GPIO_PIN_5
+#define M_DC_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

@@ -7,6 +7,8 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern SPI_HandleTypeDef hspi4;
 extern SPI_HandleTypeDef hspi6;
+extern DMA_HandleTypeDef hdma_spi4_tx;
+extern DMA_HandleTypeDef hdma_spi6_tx;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 extern TIM_HandleTypeDef htim17;

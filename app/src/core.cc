@@ -17,6 +17,8 @@
 // base64 编解码库
 
 // lua 和 ADC 输入两个问题没解决
+// SPI DMA 的问题也没有解决（目前看来其实只是BMDA的问题）
+// APP 调试的问题
 
 #include <span>
 #include <functional>
@@ -235,47 +237,6 @@ enum class WINDOW {
 } now_scene = WINDOW::normal_status, next_scene = WINDOW::unexist_scene;
 
 // u8g2_font_NokiaSmallBold_tf
-/**
- * @brief 绘制图片，左上角为原点，自动读取图片大小
-*/
-void draw_pic(U8G2* u8g2, uint8_t x, uint8_t y, const uint8_t* pic) {
-	u8g2 -> drawXBMP(x, y,
-		get_pic_width(pic),
-		get_pic_height(pic),
-		pic2xbmp(pic));
-}
-
-void draw_picture(U8G2* u8g2, int x, int y, const uint8_t* pic) {
-	if (x < 0 || y < 0) {
-		auto h = get_pic_height(pic);
-		auto w = get_pic_width(pic);
-		int blen = (w+7)/8;
-		pic += 2;         // 略过宽高信息
-
-		if (y < 0) {
-			pic = pic + blen*(-y);
-			y = 0;
-		}
-
-		// 绘制每一行的像素
-		while (h > 0) {
-			// 绘制一行中的像素
-			for (int i = 0; i < w; i++) {
-				if (i+x < 0) continue;       // 超出屏幕左边界
-				// 读取图片中的像素颜色
-				u8g2 -> setDrawColor(pic[i/8] >> (i%8) & 0x1);
-				u8g2 -> drawPixel(i+x, y);
-			}
-			// 下一行
-			pic += blen;
-			y++;
-			h--;
-		}
-		u8g2 -> setDrawColor(1);  // 恢复默认颜色
-	} else {
-		draw_pic(u8g2, x, y, pic);
-	}
-}
 
 
 // 这两的顺序必须保持一致才可以
@@ -309,16 +270,16 @@ void next_scene_func(WINDOW scene) {
 int tbz::APP::now_select_app_id = 0;
 tbz::APP apps[] {
 	tbz::APP(unknow_app_icon, "WELCOM_SCENE"),
-	tbz::APP(unknow_app_icon, "key_test"),
-	tbz::APP(unknow_app_icon, "art_generator"),
+	tbz::APP(unknow_app_icon, "按键测试"),
+	tbz::APP(unknow_app_icon, "艺术发生器"),
 	tbz::APP(unknow_app_icon, "ui_test"),
 	tbz::APP(unknow_app_icon, "ui_test2"),
 	tbz::APP(unknow_app_icon, "ui_test3"),
 	tbz::APP(unknow_app_icon, "animation1"),
 	tbz::APP(unknow_app_icon, "animation2"),
 	tbz::APP(unknow_app_icon, "animation3"),
-	tbz::APP(hanoi_app_icon,  "HANOI_GAME"),
-	tbz::APP(unknow_app_icon, "SNAKE_GAME"),
+	tbz::APP(hanoi_app_icon,  "汉诺塔"),
+	tbz::APP(unknow_app_icon, "贪吃蛇"),
 };
 tbz::game::hanoi hanoi;
 
@@ -339,8 +300,10 @@ QRCode qrcode;
 const int qrcode_version = 3;
 uint8_t qrcodeData[tbz::qrcode::get_BufferSize(qrcode_version)];
 // uint8_t qrcodeData[512];
-
+uint32_t g_address;
 void oled_func(void* argument) {
+
+	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
 
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
@@ -368,9 +331,6 @@ void oled_func(void* argument) {
 	while (true) {
 
 		// u8g2.clearBuffer();
-		// u8g2.setFont(u8g2_font_6x10_tf);
-		// sprintf(buf, "address:%X", 1234);
-		// u8g2.drawStr(0, 10, buf);
 
 
 		if (key_pressed_func(4)) {
@@ -402,8 +362,10 @@ void oled_func(void* argument) {
 		}
 
 		if (key_pressed_func(9)) {
-			next_app = APP_ENUM::main;
-			fade_to_next_scene(next_app);
+			if (now_app != APP_ENUM::main) {
+				next_app = APP_ENUM::main;
+				fade_to_next_scene(next_app);
+			}
 		}
 
 		switch (now_scene) {
@@ -452,17 +414,31 @@ void oled_func(void* argument) {
 						else if(ani_n < -0.01) ani_n += 0.1*(-ani_n+0.1);
 						u8g2.clearBuffer();
 						u8g2.setBitmapMode(1);
+
+						const int bubble_y = 109;
+						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
+							int x = 64+6*(i-tbz::APP::now_select_app_id-ani_n);
+							if (x < 0 || x > 127) continue;
+							if (i == tbz::APP::now_select_app_id) {
+								u8g2.drawFilledEllipse(x, bubble_y, 3, 3, U8G2_DRAW_ALL);
+							} else {
+								u8g2.drawCircle(x, bubble_y, 3, U8G2_DRAW_ALL);
+							}
+						}
 						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
 							int x = 44+44*(i-tbz::APP::now_select_app_id-ani_n);
 							int y = 44+11*abs(i-tbz::APP::now_select_app_id-ani_n);
+							u8g2.setFont(u8g2_font_micro_mr);
+							int wstr = u8g2.getUTF8Width(apps[i].getName());
+							u8g2.drawStr(x+22-wstr/2, y-2, apps[i].getName());
 							// int x = 44+44*ani_n+44*(i-tbz::APP::now_select_app_id);
 							// int y = 44+44*ani_n+11*abs(i-tbz::APP::now_select_app_id);
 							if (x < -40 || x > 127) continue;
 							draw_picture(&u8g2, x, y, apps[i].getPic().getBasePic());
 							// draw_pic(&u8g2, x, y, apps[i].getPic().getBasePic());
 						}
-						u8g2.setFont(u8g2_font_wqy16_t_gb2312);
-						u8g2.drawStr(64-u8g2.getUTF8Width(apps[tbz::APP::now_select_app_id].getName())/2, 126, apps[tbz::APP::now_select_app_id].getName());
+						u8g2.setFont(u8g2_font_wqy12_t_gb2312);
+						u8g2.drawUTF8(64-u8g2.getUTF8Width(apps[tbz::APP::now_select_app_id].getName())/2, 126, apps[tbz::APP::now_select_app_id].getName());
 					} break;
 					case APP_ENUM::SNAKE_GAME: {
 						if (key_pressed_func(1)) {
@@ -625,6 +601,11 @@ void oled_func(void* argument) {
 			// 	now_scene = WINDOW::normal_status;
 			// } break;
 		}
+
+
+		u8g2.setFont(u8g2_font_6x10_tf);
+		sprintf(buf, "address:%X", g_address);
+		u8g2.drawStr(0, 10, buf);
 
 		u8g2.sendBuffer();
 		vTaskDelay(16);
