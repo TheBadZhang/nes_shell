@@ -89,7 +89,6 @@ void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_SDMMC1_SD_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI4_Init(void);
 static void MX_ADC1_Init(void);
@@ -100,8 +99,9 @@ static void MX_USART1_UART_Init(void);
 static void MX_RNG_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_TIM17_Init(void);
+static void MX_SDMMC1_SD_Init(void);
 static void MX_DCMI_Init(void);
+static void MX_TIM17_Init(void);
 void StartDefaultTask(void *argument);
 extern void led0_task(void *argument);
 
@@ -127,6 +127,9 @@ int main(void)
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
 
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
+
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -149,7 +152,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_SDMMC1_SD_Init();
   MX_SPI1_Init();
   MX_SPI4_Init();
   MX_ADC1_Init();
@@ -160,8 +162,9 @@ int main(void)
   MX_RNG_Init();
   MX_USB_OTG_HS_PCD_Init();
   MX_I2C1_Init();
-  MX_TIM17_Init();
+  MX_SDMMC1_SD_Init();
   MX_DCMI_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

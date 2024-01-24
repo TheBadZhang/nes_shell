@@ -16,8 +16,11 @@
 
 // base64 编解码库
 
+// 现在app可以设置图标，这个图标的指针是我们可以自己设计的，这个也就意味着实现了某种程度上的动态图标
+// 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
+// 多级菜单，列表
+
 // lua 和 ADC 输入两个问题没解决
-// SPI DMA 的问题也没有解决（目前看来其实只是BMDA的问题）
 // APP 调试的问题
 
 #include <span>
@@ -266,6 +269,7 @@ void next_scene_func(WINDOW scene) {
 	now_scene = scene;
 }
 
+uint8_t clock_app_icon[202] { 0x28, 0x28 };
 
 int tbz::APP::now_select_app_id = 0;
 tbz::APP apps[] {
@@ -277,7 +281,7 @@ tbz::APP apps[] {
 	tbz::APP(unknow_app_icon, "ui_test3"),
 	tbz::APP(unknow_app_icon, "animation1"),
 	tbz::APP(unknow_app_icon, "animation2"),
-	tbz::APP(unknow_app_icon, "animation3"),
+	tbz::APP(clock_app_icon,  "时钟"),
 	tbz::APP(hanoi_app_icon,  "汉诺塔"),
 	tbz::APP(unknow_app_icon, "贪吃蛇"),
 };
@@ -317,6 +321,23 @@ void oled_func(void* argument) {
 	rwf.set_U8G2(&u8g2);
 	get_art_index_random();
 	std::hash<const char*> hash_fn;
+
+	apps[8].setIconUpdateFunc([](tbz::APP& app) {
+		// for (int i = 0; i < 40; i++) {
+		// 	for (int j = 0; j < 40; j++) {
+		// 		if ((i^j) & 1)
+		// 		// drawPixel(apps[8].getPic().getBasePic2(), i, j);
+		// 		apps[8].getPic().drawPixel(i, j);
+		// 	}
+		// }
+
+		app.getPic().clear();
+		app.getPic().drawCircle(20, 20, rand()%19);
+		app.getPic().drawLine(0, 0, 40, 40);
+		app.getPic().drawLine(0, 40, 40, 0);
+		app.getPic().drawBox(15, 15, 25, 25);
+		app.getPic().drawFrame(0, 0, 40, 40);
+	});
 
 	// now_scene = static_cast<WINDOW>(0);
 
@@ -425,6 +446,8 @@ void oled_func(void* argument) {
 								u8g2.drawCircle(x, bubble_y, 3, U8G2_DRAW_ALL);
 							}
 						}
+
+
 						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
 							int x = 44+44*(i-tbz::APP::now_select_app_id-ani_n);
 							int y = 44+11*abs(i-tbz::APP::now_select_app_id-ani_n);
@@ -434,6 +457,7 @@ void oled_func(void* argument) {
 							// int x = 44+44*ani_n+44*(i-tbz::APP::now_select_app_id);
 							// int y = 44+44*ani_n+11*abs(i-tbz::APP::now_select_app_id);
 							if (x < -40 || x > 127) continue;
+							apps[i].updateIcon();
 							draw_picture(&u8g2, x, y, apps[i].getPic().getBasePic());
 							// draw_pic(&u8g2, x, y, apps[i].getPic().getBasePic());
 						}

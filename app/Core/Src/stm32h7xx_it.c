@@ -218,20 +218,6 @@ void SPI4_IRQHandler(void)
   /* USER CODE END SPI4_IRQn 1 */
 }
 
-/**
-  * @brief This function handles BDMA2 channel0 global interrupt.
-  */
-void BDMA2_Channel0_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA2_Channel0_IRQn 0 */
-
-  /* USER CODE END BDMA2_Channel0_IRQn 0 */
-
-  /* USER CODE BEGIN BDMA2_Channel0_IRQn 1 */
-
-  /* USER CODE END BDMA2_Channel0_IRQn 1 */
-}
-
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
