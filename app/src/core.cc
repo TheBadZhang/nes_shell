@@ -414,22 +414,6 @@ void oled_func(void* argument) {
 			}
 		}
 
-		if (key_pressed_func(14)) {
-			switch (now_app) {
-				case APP_ENUM::key_test:           fade_to_next_scene(APP_ENUM::WELCOM_SCENE);     break;
-				case APP_ENUM::WELCOM_SCENE:       fade_to_next_scene(APP_ENUM::HANOI_GAME);       break;
-				case APP_ENUM::HANOI_GAME:         fade_to_next_scene(APP_ENUM::SNAKE_GAME);       break;
-				case APP_ENUM::SNAKE_GAME:         fade_to_next_scene(APP_ENUM::art_generator);    break;
-				case APP_ENUM::art_generator:      fade_to_next_scene(APP_ENUM::ui_test);          break;
-				case APP_ENUM::ui_test:            fade_to_next_scene(APP_ENUM::ui_test2);         break;
-				case APP_ENUM::ui_test2:           fade_to_next_scene(APP_ENUM::ui_test3);         break;
-				case APP_ENUM::ui_test3:           fade_to_next_scene(APP_ENUM::animation1);       break;
-				case APP_ENUM::animation1:         fade_to_next_scene(APP_ENUM::animation2);       break;
-				case APP_ENUM::animation2:         fade_to_next_scene(APP_ENUM::animation3);       break;
-				case APP_ENUM::animation3:         fade_to_next_scene(APP_ENUM::key_test);         break;
-			}
-		}
-
 		if (key_pressed_func(9)) {
 			if (now_app != APP_ENUM::main) {
 				next_app = APP_ENUM::main;
