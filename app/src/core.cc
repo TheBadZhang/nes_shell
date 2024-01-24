@@ -307,6 +307,12 @@ const int qrcode_version = 3;
 uint8_t qrcodeData[tbz::qrcode::get_BufferSize(qrcode_version)];
 // uint8_t qrcodeData[512];
 uint32_t g_address;
+
+
+double radians(double degrees) {
+	return degrees * 3.14159265357 / 180;
+}
+
 void oled_func(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
@@ -340,14 +346,44 @@ void oled_func(void* argument) {
 		}
 	});
 
-	apps[8].setIconUpdateFunc([](tbz::APP& app) {
-		app.getPic().clear();
-		app.getPic().drawCircle(20, 20, rand()%19);
-		// app.getPic().drawLine(0, 0, 40, 40);
-		// app.getPic().drawLine(0, 40, 40, 0);
-		app.getPic().drawBox(15, 15, 25, 25);
-		// app.getPic().drawFrame(0, 0, 40, 40);
-		app.getPic().drawRFrame(0, 0, 40, 40, 5, 1);
+	apps[8].setIconUpdateFunc([&time_seconds](tbz::APP& app) {
+		auto& app_icon = app.getPic();
+
+		app_icon.clear();
+		app_icon.drawFilledCircle(20, 20, 4);
+
+		int hand_angle = time_seconds*6;
+		int hand_lenght_long = 16;
+		int hand_legth_short = 10;
+		int center_x = 20;
+		int center_y = 20;
+		float xpos;
+		float ypos;
+		float xpos2;
+		float ypos2;
+
+
+		// draw 60 dots (pixels) around the circle, one for every minute/second
+		for (int i=0; i<12; i++) { // draw 60 pixels around the circle
+			xpos = round(center_x + sin(radians(i * 30)) * 17); // calculate x pos based on angle and radius
+			ypos = round(center_y - cos(radians(i * 30)) * 17); // calculate y pos based on angle and radius
+
+			app_icon.drawPixel(xpos,ypos); // draw white pixel on position xpos and ypos
+		}
+
+		// calculate starting and ending position of the second hand
+		xpos = round(center_x + sin(radians(hand_angle)) * hand_lenght_long); // calculate x pos based on angle and radius
+		ypos = round(center_y - cos(radians(hand_angle)) * hand_lenght_long); // calculate y pos based on angle and radius
+		xpos2 = round(center_x + sin(radians(hand_angle + 180)) * hand_legth_short); // calculate x pos based on angle and radius
+		ypos2 = round(center_y - cos(radians(hand_angle + 180)) * hand_legth_short); // calculate y pos based on angle and radius
+
+		app_icon.drawLine(xpos, ypos, xpos2, ypos2); // draw the main line
+		// u8g2 -> drawLine(xpos, ypos, xpos2, ypos2); // draw the main line
+		// u8g2 -> setDrawColor(0); // black color
+		// u8g2 -> drawDisc(xpos2, ypos2, 3); // draw small filled black circle
+		// u8g2 -> setDrawColor(1); // white color
+		app_icon.drawCircle(xpos2, ypos2, 3);
+		app_icon.drawCircle(center_x, center_y, 19);
 
 	});
 
