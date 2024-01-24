@@ -4,8 +4,6 @@
 // https://github.com/Robert-van-Engelen/tinylisp
 // 尝试添加一个 lisp repl 到项目当中
 
-// 移植 TheBadZhang/ege_animation
-
 // nes 模拟器
 
 // 俄罗斯方块
@@ -16,7 +14,7 @@
 
 // base64 编解码库
 
-// 现在app可以设置图标，这个图标的指针是我们可以自己设计的，这个也就意味着实现了某种程度上的动态图标
+// 文字超过范围滚动显示
 // 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
 // 多级菜单，列表
 
@@ -45,7 +43,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "xbmp_describ.h"
+#include "xbmp_describ.hpp"
 
 // #include "tinyexpr.h"
 #include "hanoi.hpp"
@@ -270,6 +268,8 @@ void next_scene_func(WINDOW scene) {
 }
 
 uint8_t clock_app_icon[202] { 0x28, 0x28 };
+uint8_t animation_app_icon[202] { 0x28, 0x28 };
+uint8_t animation2_app_icon[202] { 0x28, 0x28 };
 
 int tbz::APP::now_select_app_id = 0;
 tbz::APP apps[] {
@@ -279,8 +279,8 @@ tbz::APP apps[] {
 	tbz::APP(unknow_app_icon, "ui_test"),
 	tbz::APP(unknow_app_icon, "ui_test2"),
 	tbz::APP(unknow_app_icon, "ui_test3"),
-	tbz::APP(unknow_app_icon, "animation1"),
-	tbz::APP(unknow_app_icon, "animation2"),
+	tbz::APP(animation_app_icon, "animation1"),
+	tbz::APP(animation2_app_icon, "animation2"),
 	tbz::APP(clock_app_icon,  "时钟"),
 	tbz::APP(hanoi_app_icon,  "汉诺塔"),
 	tbz::APP(unknow_app_icon, "贪吃蛇"),
@@ -288,8 +288,10 @@ tbz::APP apps[] {
 tbz::game::hanoi hanoi;
 
 extern const uint8_t snow_animation_pic[];
-tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 9);
-tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 6);
+tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
+tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 128, 128, 6);
+tbz::SPRITE_ANIMATION<4> ani3(snow_animation_pic, 72, 8, 8, 8, 40, 40, 9);
+tbz::SPRITE_ANIMATION<4> ani4(snow_animation_pic+72, 54, 8, 8, 8, 40, 40, 6);
 
 tbz::round_watch_face rwf;
 
@@ -321,22 +323,32 @@ void oled_func(void* argument) {
 	rwf.set_U8G2(&u8g2);
 	get_art_index_random();
 	std::hash<const char*> hash_fn;
+	apps[6].setIconUpdateFunc([&ani3, &ani4](tbz::APP& app) {
+		app.getPic().clear();
+		ani3.draw2(app.getPic());
+		ani4.draw2(app.getPic());
+		app.getPic().drawFrame(0, 0, 40, 40);
+
+	});
+
+	apps[7].setIconUpdateFunc([](tbz::APP& app) {
+		for (int i = 0; i < 40; i++) {
+			for (int j = 0; j < 40; j++) {
+				if ((i^j) & 1)
+				app.getPic().drawPixel(i, j);
+			}
+		}
+	});
 
 	apps[8].setIconUpdateFunc([](tbz::APP& app) {
-		// for (int i = 0; i < 40; i++) {
-		// 	for (int j = 0; j < 40; j++) {
-		// 		if ((i^j) & 1)
-		// 		// drawPixel(apps[8].getPic().getBasePic2(), i, j);
-		// 		apps[8].getPic().drawPixel(i, j);
-		// 	}
-		// }
-
 		app.getPic().clear();
 		app.getPic().drawCircle(20, 20, rand()%19);
-		app.getPic().drawLine(0, 0, 40, 40);
-		app.getPic().drawLine(0, 40, 40, 0);
+		// app.getPic().drawLine(0, 0, 40, 40);
+		// app.getPic().drawLine(0, 40, 40, 0);
 		app.getPic().drawBox(15, 15, 25, 25);
-		app.getPic().drawFrame(0, 0, 40, 40);
+		// app.getPic().drawFrame(0, 0, 40, 40);
+		app.getPic().drawRFrame(0, 0, 40, 40, 5, 1);
+
 	});
 
 	// now_scene = static_cast<WINDOW>(0);
