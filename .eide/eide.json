@@ -343,7 +343,8 @@
         "bootloader/startup_stm32h7b0xx.s",
         "codebase/w25q",
         "app/Hanoi/res",
-        "codebase/animation/soudwave.cc"
+        "codebase/animation/soudwave.cc",
+        "codebase/app/animation/soudwave.cc"
       ],
       "toolchain": "GCC",
       "compileConfig": {

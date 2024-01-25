@@ -27,10 +27,10 @@
 // 多级菜单，列表
 
 // malloc 的问题
+// lua 调用问题还没有解决
 
 // libjpeg dma2d
 
-// lua 和 ADC 输入两个问题没解决
 // APP 调试的问题
 
 #include <span>
@@ -60,7 +60,7 @@
 // #include "tinyexpr.h"
 #include "hanoi.hpp"
 #include "snake.hpp"
-#include "sound_wave.hpp"
+// #include "sound_wave.hpp"
 
 
 extern const unsigned short test_img_128x128[][128];
@@ -189,15 +189,15 @@ const osThreadAttr_t ips_attributes = {
 	.stack_size = 1024 * 4,
 	.priority = (osPriority_t) osPriorityNormal,
 };
-void oled_func(void* argument);
+void oled_function(void* argument);
 void ips_func(void* argument);
 extern "C" void load(void) {
 	uint32_t random_seed = 0;
 	HAL_RNG_GenerateRandomNumber(&hrng, &random_seed);
 	srand(random_seed);
-	ANOOLEDHandle = osThreadNew(oled_func, NULL, &ANOOLED_attributes);
-	keyscanHandle = osThreadNew(key_scan, NULL, &keyscan_attributes);
 	ipsHandle = osThreadNew(ips_func, NULL, &ips_attributes);
+	ANOOLEDHandle = osThreadNew(oled_function, NULL, &ANOOLED_attributes);
+	keyscanHandle = osThreadNew(key_scan, NULL, &keyscan_attributes);
 }
 
 void ips_func(void* argument) {
@@ -274,15 +274,17 @@ char base64_in[] {"Hello World!"};
 uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
-uint16_t __attribute__((section (".dma_sram"))) adc_result[64] {0};
 
-void oled_func(void* argument) {
+uint16_t __attribute__((section (".dma_sram"))) adc_result[512] {0};
+
+void oled_function(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
 
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
+
 	// game_hanoi hanoi(&u8g2);
 	qrcode.set_U8G2(&u8g2);
 	qrcode.setContent("Hello World!");
@@ -321,11 +323,12 @@ void oled_func(void* argument) {
 	});
 
 	apps[7].setIconUpdateFunc([](tbz::APP& app) {
+		app.getPic().clear();
+		int adc_view1 = adc_result[0]/65536.0*40, adc_view2 = 0;
 		for (int i = 0; i < 40; i++) {
-			for (int j = 0; j < 40; j++) {
-				if ((i^j) & 1)
-				app.getPic().drawPixel(i, j);
-			}
+			adc_view2 = adc_result[i+1]/65536.0*40;
+			app.getPic().drawLine(i, adc_view1,i+1, adc_view2);
+			adc_view1 = adc_view2;
 		}
 	});
 
@@ -372,8 +375,7 @@ void oled_func(void* argument) {
 
 
 	HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)adc_result, 64);
-	int index_of_adc = 0;
+	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)adc_result, 128);
 
 
 	while (true) {
@@ -470,10 +472,16 @@ void oled_func(void* argument) {
 					} break;
 					case APP_ENUM::adc_animation: {
 						// 动画2
-						HAL_ADC_Start(&hadc1);
-						HAL_ADC_PollForConversion(&hadc1, 50);
+						// HAL_ADC_Start(&hadc1);
+						// HAL_ADC_PollForConversion(&hadc1, 50);
 
-						rwf.draw(HAL_ADC_GetValue(&hadc1)/33.0);
+						rwf.draw(adc_result[0]/33.0);
+		int adc_view1 = adc_result[0]/65536.0*40, adc_view2 = 0;
+		for (int i = 0; i < 128; i++) {
+			adc_view2 = adc_result[i+1]/65536.0*40;
+			u8g2.drawLine(i, 64+adc_view1,i+1, 64+adc_view2);
+			adc_view1 = adc_view2;
+		}
 						// sound_wave.draw_sound_wave();
 					} break;
 					case APP_ENUM::animation3: {
@@ -554,21 +562,12 @@ void oled_func(void* argument) {
 			// } break;
 		}
 
-		if (key_pressed_func(2)) {
-			index_of_adc --;
-			if (index_of_adc < 0) index_of_adc = 0;
-		}
-		if (key_pressed_func(12)) {
-			index_of_adc ++;
-			if (index_of_adc > 63) index_of_adc = 63;
-		}
+		// u8g2.setFont(u8g2_font_6x10_tf);
+		// sprintf(buf, "address:%X", adc_result);
+		// u8g2.drawStr(0, 10, buf);
+		// sprintf(buf, "adc:%dmv", adc_result[0]);
+		// u8g2.drawStr(0, 20, buf);
 
-
-		u8g2.setFont(u8g2_font_6x10_tf);
-		sprintf(buf, "address:%X", adc_result);
-		u8g2.drawStr(0, 10, buf);
-		sprintf(buf, "adc:%dmv", adc_result[index_of_adc]*3300/65536);
-		u8g2.drawStr(0, 20, buf);
 
 		u8g2.sendBuffer();
 		vTaskDelay(16);
@@ -589,5 +588,17 @@ void core(void) {
 // 	if (GPIO_Pin == KEY_Pin) {
 // 		USBVcom_printf("Key pressed:%d\r\nresult:%lf\r\n", count++, te_interp("1+2+3+4+5+6+7+8+9+10", nullptr));
 // 		// __HAL_GPIO_EXTI_CLEAR_IT(KEY_Pin);
+// 	}
+// }
+
+// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+// 	static unsigned int cnt = 0;
+// 	if (htim == (&htim10)) {
+// 		if (cnt == adc_size) {
+// 			cnt = 0;
+// 			fft_calc();
+// 		}
+// 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adc_value+cnt), 1);
+// 		cnt++;
 // 	}
 // }
