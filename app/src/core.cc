@@ -9,7 +9,12 @@
 // https://github.com/pondahai
 // nes 模拟器
 
-// 烟花动画
+// https://wokwi.com/projects/376479299848582145 （电池充电）
+// https://wokwi.com/projects/328271658006610514 （旋转立方体）
+// https://wokwi.com/projects/376931330900285441 （指南针）
+// https://wokwi.com/projects/385987811439126529 （水平指南针）
+
+// 手写数字识别
 
 // 摄像头
 
@@ -247,6 +252,8 @@ tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
 tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 128, 128, 6);
 tbz::SPRITE_ANIMATION<4> ani3(snow_animation_pic, 72, 8, 8, 8, 40, 40, 9);
 tbz::SPRITE_ANIMATION<4> ani4(snow_animation_pic+72, 54, 8, 8, 8, 40, 40, 6);
+extern const uint8_t fireworks_pic[];
+// tbz::SPRITE_ANIMATION<1> fireworks(fireworks_pic+2, fireworks_pic[0], fireworks_pic[1], 40, 40, 40, 40, 8);
 
 tbz::game::hanoi hanoi;
 tbz::round_watch_face rwf;
@@ -261,6 +268,13 @@ uint32_t g_address;
 double radians(double degrees) {
 	return degrees * 3.14159265357 / 180;
 }
+
+#include "base64.h"
+char base64_in[] {"Hello World!"};
+uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
+int base64_out_len;
+
+uint16_t __attribute__((section (".dma_sram"))) adc_result[64] {0};
 
 void oled_func(void* argument) {
 
@@ -284,6 +298,20 @@ void oled_func(void* argument) {
 	app_selector.set_U8G2(&u8g2);
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
+
+	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
+	base64_out[base64_out_len] = '\0';
+
+	apps[2].setIconUpdateFunc([&fireworks_pic](tbz::APP& app) {
+		app.getPic().clear();
+		// fireworks.draw2(app.getPic());
+		static int i = 0;
+		app.getPic().drawXBMP(0, 0, 40, 40, (const uint8_t*)(2+fireworks_pic+i*5*40));
+		app.getPic().drawFrame(0, 0, 40, 40);
+		i++;
+		if (i > 7) i = 0;
+	});
+
 	apps[6].setIconUpdateFunc([&ani3, &ani4](tbz::APP& app) {
 		app.getPic().clear();
 		ani3.draw2(app.getPic());
@@ -341,6 +369,11 @@ void oled_func(void* argument) {
 		app_icon.drawCircle(center_x, center_y, 19);
 
 	});
+
+
+	HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)adc_result, 64);
+	int index_of_adc = 0;
 
 
 	while (true) {
@@ -422,6 +455,8 @@ void oled_func(void* argument) {
 					} break;
 					case APP_ENUM::qrcode_test: {
 						qrcode.draw();
+						u8g2.setFont(u8g2_font_6x10_tf);
+						u8g2.drawStr(0, 10, (const char*)base64_out);
 					} break;
 					case APP_ENUM::animation1: {
 						alert_font = u8g2_font_wqy16_t_gb2312;
@@ -519,10 +554,21 @@ void oled_func(void* argument) {
 			// } break;
 		}
 
+		if (key_pressed_func(2)) {
+			index_of_adc --;
+			if (index_of_adc < 0) index_of_adc = 0;
+		}
+		if (key_pressed_func(12)) {
+			index_of_adc ++;
+			if (index_of_adc > 63) index_of_adc = 63;
+		}
 
-		// u8g2.setFont(u8g2_font_6x10_tf);
-		// sprintf(buf, "address:%X", g_address);
-		// u8g2.drawStr(0, 10, buf);
+
+		u8g2.setFont(u8g2_font_6x10_tf);
+		sprintf(buf, "address:%X", adc_result);
+		u8g2.drawStr(0, 10, buf);
+		sprintf(buf, "adc:%dmv", adc_result[index_of_adc]*3300/65536);
+		u8g2.drawStr(0, 20, buf);
 
 		u8g2.sendBuffer();
 		vTaskDelay(16);

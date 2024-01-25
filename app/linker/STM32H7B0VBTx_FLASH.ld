@@ -65,7 +65,7 @@ MEMORY
 DTCMRAM (xrw)     : ORIGIN = 0x20000000, LENGTH = 128K
 ITCMRAM (xrw)     : ORIGIN = 0x00000000, LENGTH = 64K
 RAM (xrw)         : ORIGIN = 0x24000000, LENGTH = 1024K
-BDMA_RAM (xrw)    : ORIGIN = 0x30000000, LENGTH = 128K
+DMA_RAM (xrw)    : ORIGIN = 0x30000000, LENGTH = 128K
 BDMA2_RAM (xrw)   : ORIGIN = 0x38000000, LENGTH = 32K
 FLASH (rx)        : ORIGIN = 0x08000000, LENGTH = 128K
 EX_FLASH (rx)     : ORIGIN = 0x90000000, LENGTH = 8192K
@@ -76,16 +76,16 @@ SECTIONS
 {
 
     /* external sram data, do not initialize at startup  */
-  .bdma_sram(NOLOAD) :
+  .dma_sram(NOLOAD) :
   {
     . = ALIGN(4);
-    _sbdma_sram = .;        /* create a global symbol at ext_sram start */
-    *(.bdma_sram)
-    *(.bdma_sram*)
+    _sdma_sram = .;        /* create a global symbol at ext_sram start */
+    *(.dma_sram)
+    *(.dma_sram*)
 
     . = ALIGN(4);
-    _ebdma_sram = .;        /* define a global symbol at ext_sram end */
-  } >BDMA_RAM AT> EX_FLASH
+    _edma_sram = .;        /* define a global symbol at ext_sram end */
+  } >DMA_RAM AT> EX_FLASH
 
   .bdma2_sram(NOLOAD) :
   {
