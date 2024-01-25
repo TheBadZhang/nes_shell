@@ -4,8 +4,22 @@
 // https://github.com/Robert-van-Engelen/tinylisp
 // 尝试添加一个 lisp repl 到项目当中
 
+// https://www.taterli.com/3199/
+// https://twitter.com/shuichi_takano/status/1477702448907419649
+// https://github.com/pondahai
 // nes 模拟器
 
+// 迷宫
+
+// 烟花动画
+
+// 扫雷
+
+// 2048
+
+// 五子棋（？
+
+// https://www.bilibili.com/video/BV1DP4y1S7XM
 // 俄罗斯方块
 
 // 生命游戏
@@ -14,9 +28,17 @@
 
 // base64 编解码库
 
+// 滚动数字时钟
+
+//TODO: PIC.drawXBMP 右边界绘制，还有左边界绘制
+// APP 进入退出动画可以考虑重新设计一个更富有动画效果的
 // 文字超过范围滚动显示
 // 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
 // 多级菜单，列表
+
+// malloc 的问题
+
+// libjpeg dma2d
 
 // lua 和 ADC 输入两个问题没解决
 // APP 调试的问题
@@ -62,11 +84,12 @@ extern const unsigned short test_img_128x128[][128];
 #include "round_watch_face.hpp"
 #include "square_watch.hpp"
 
+#include "list_selector.hpp"
 
-// hardcoded time values
-int time_minutes = 10;
-int time_hours = 10;
-int time_seconds = 45;
+
+
+RTC_TimeTypeDef sTime;
+RTC_DateTypeDef sDate;
 
 #include "qrcode.hpp"
 #include "modern_art_generator.hpp"
@@ -76,10 +99,8 @@ int count = 0;
 uint8_t keyboard[8] {0,0,0,0,0,0,0,0};
 
 
-bool key[16] {false};
-bool key_pressed_flag[16] {false};
-
-int current_time = 0;
+bool key[16] {false};               // 这一次扫描被按下的按键
+bool key_pressed_flag[16] {false};  // 单次按键
 
 void key_scan(void* argument) {
 	while (true) {
@@ -114,9 +135,9 @@ void key_scan(void* argument) {
 	}
 }
 
-bool key_pressed_func (int id_of_key) {
+bool key_pressed_func (int id_of_key, bool _pressed_key_ = true) {
 	if (key[id_of_key] && !key_pressed_flag[id_of_key]) {
-		key_pressed_flag[id_of_key] = true;
+		key_pressed_flag[id_of_key] = _pressed_key_;
 		return true;
 	} else {
 		return false;
@@ -152,9 +173,10 @@ extern "C" void led0_task(void* argument) {
 
 	while (true) {
 		flip(LED);
-
+		// https://blog.csdn.net/qq_32216815/article/details/116934350
+		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 		// luaL_dostring(L, test);
-		time_seconds++;
 		vTaskDelay(500);
 	}
 }
@@ -205,24 +227,7 @@ void ips_func(void* argument) {
 
 }
 
-
-using str = const char*;
-str ui_list[] = {
-	"[ Setting ]",
-	"~ Disp Bri",
-	"~ List Cur",
-	"~ List Ani",
-	"~ Win Ani",
-	"~ Fade Ani",
-	"~ Btn SPT",
-	"~ Btn LPT",
-	"+ L Ufd Fm Scr",
-	"+ L Loop Mode",
-	"+ Win Bokeh Bg",
-	"+ Knob Rot Dir",
-	"+ Dark Mode",
-	"- [ About ]",
-};
+tbz::LIST_SELECTOR list_selector;
 
 
 enum class WINDOW {
@@ -270,7 +275,7 @@ void next_scene_func(WINDOW scene) {
 uint8_t clock_app_icon[202] { 0x28, 0x28 };
 uint8_t animation_app_icon[202] { 0x28, 0x28 };
 uint8_t animation2_app_icon[202] { 0x28, 0x28 };
-
+extern const uint8_t bottom_arc[];
 int tbz::APP::now_select_app_id = 0;
 tbz::APP apps[] {
 	tbz::APP(unknow_app_icon, "WELCOM_SCENE"),
@@ -327,6 +332,7 @@ void oled_func(void* argument) {
 	ani2.set_U8G2(&u8g2);
 	sw.set_U8G2(&u8g2);
 	rwf.set_U8G2(&u8g2);
+	list_selector.set_U8G2(&u8g2);
 	get_art_index_random();
 	std::hash<const char*> hash_fn;
 	apps[6].setIconUpdateFunc([&ani3, &ani4](tbz::APP& app) {
@@ -346,13 +352,13 @@ void oled_func(void* argument) {
 		}
 	});
 
-	apps[8].setIconUpdateFunc([&time_seconds](tbz::APP& app) {
+	apps[8].setIconUpdateFunc([&sTime](tbz::APP& app) {
 		auto& app_icon = app.getPic();
 
 		app_icon.clear();
 		app_icon.drawFilledCircle(20, 20, 4);
 
-		int hand_angle = time_seconds*6;
+		int hand_angle = sTime.Seconds*6;
 		int hand_lenght_long = 16;
 		int hand_legth_short = 10;
 		int center_x = 20;
@@ -393,6 +399,8 @@ void oled_func(void* argument) {
 	// char* sss = (char*)malloc(128);
 
 	double ani_n = 0;
+	double ani_n_2 = 0;
+	double ani_n_3 = 1;
 	// ADC 定时采集
 	// HAL_TIM_Base_Start_IT(&htim16);
 	// str122_x = (128-u8g2.getUTF8Width(str122))/2;
@@ -418,6 +426,7 @@ void oled_func(void* argument) {
 			if (now_app != APP_ENUM::main) {
 				next_app = APP_ENUM::main;
 				fade_to_next_scene(next_app);
+				ani_n_2 = 0;
 			}
 		}
 
@@ -434,6 +443,9 @@ void oled_func(void* argument) {
 			// case WINDOW::layer_out_animation: {
 			// 	tbz::animation::layer_out(&u8g2, now_scene, next_scene);
 			// } break;
+			// case WINDOW::layer_in_animation: {
+			// 	ani_n_2 = 0;
+			// }
 			case WINDOW::alert: {
 				tbz::ui::menu::alert::draw(&u8g2);
 			} break;
@@ -449,6 +461,7 @@ void oled_func(void* argument) {
 							} else {
 								ani_n += 1;
 							}
+							ani_n_3 = 1;
 						}
 						if (key_pressed_func(10)) {
 							tbz::APP::now_select_app_id++;
@@ -458,6 +471,7 @@ void oled_func(void* argument) {
 							} else {
 								ani_n -= 1;
 							}
+							ani_n_3 = 1;
 						}
 						if (key_pressed_func(5)) {
 							next_app = static_cast<APP_ENUM>(tbz::APP::now_select_app_id);
@@ -465,13 +479,43 @@ void oled_func(void* argument) {
 						}
 						if (ani_n>0.01) ani_n -= 0.1*(ani_n+0.1);
 						else if(ani_n < -0.01) ani_n += 0.1*(-ani_n+0.1);
+
+						if (ani_n_2 < 1.0) ani_n_2 += 0.1;
+						else ani_n_2 = 1.0;
+
+						if (ani_n_3 > 0) ani_n_3 -= 0.1;
+						else ani_n_3 = 0;
 						u8g2.clearBuffer();
 						u8g2.setBitmapMode(1);
 
+
+						// APP 图标显示
+						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
+							// 使不同APP产生一定的弧度
+							// 使当前选中app显示在画面中间，且有切换动画
+							int x = 44+44*(i-tbz::APP::now_select_app_id-ani_n)*ani_n_2;
+							int y = 30+11*abs(i-tbz::APP::now_select_app_id-ani_n)*ani_n_2;
+							// 设置字体计算宽度使得文字居中
+							u8g2.setFont(u8g2_font_micro_mr);
+							int wstr = u8g2.getUTF8Width(apps[i].getName());
+							u8g2.drawStr(x+22-wstr/2, y-2, apps[i].getName());
+							// 跳过屏幕之外的元素
+							if (x < -40 || x > 127) continue;
+							// 更新APP图标，然后，绘制APP图标
+							apps[i].updateIcon();
+							draw_picture(&u8g2, x, y, apps[i].getPic().getBasePic());
+						}
+
+
+						// 底栏和顶栏显示
+						draw_pic(&u8g2, 0, 90, bottom_arc);
 						const int bubble_y = 109;
 						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
 							int x = 64+6*(i-tbz::APP::now_select_app_id-ani_n);
 							if (x < 0 || x > 127) continue;
+							u8g2.setDrawColor(0);
+							u8g2.drawFilledEllipse(x, bubble_y, 4, 4, U8G2_DRAW_ALL);
+							u8g2.setDrawColor(1);
 							if (i == tbz::APP::now_select_app_id) {
 								u8g2.drawFilledEllipse(x, bubble_y, 3, 3, U8G2_DRAW_ALL);
 							} else {
@@ -479,22 +523,19 @@ void oled_func(void* argument) {
 							}
 						}
 
-
-						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
-							int x = 44+44*(i-tbz::APP::now_select_app_id-ani_n);
-							int y = 44+11*abs(i-tbz::APP::now_select_app_id-ani_n);
-							u8g2.setFont(u8g2_font_micro_mr);
-							int wstr = u8g2.getUTF8Width(apps[i].getName());
-							u8g2.drawStr(x+22-wstr/2, y-2, apps[i].getName());
-							// int x = 44+44*ani_n+44*(i-tbz::APP::now_select_app_id);
-							// int y = 44+44*ani_n+11*abs(i-tbz::APP::now_select_app_id);
-							if (x < -40 || x > 127) continue;
-							apps[i].updateIcon();
-							draw_picture(&u8g2, x, y, apps[i].getPic().getBasePic());
-							// draw_pic(&u8g2, x, y, apps[i].getPic().getBasePic());
-						}
+						u8g2.drawRBox(0, 0, 128, 15, 3);
 						u8g2.setFont(u8g2_font_wqy12_t_gb2312);
-						u8g2.drawUTF8(64-u8g2.getUTF8Width(apps[tbz::APP::now_select_app_id].getName())/2, 126, apps[tbz::APP::now_select_app_id].getName());
+						u8g2.setFontMode(1);
+						u8g2.setDrawColor(2);
+						u8g2.drawUTF8(
+							64-u8g2.getUTF8Width(apps[tbz::APP::now_select_app_id].getName())/2,
+							126+ani_n_3*14,
+							apps[tbz::APP::now_select_app_id].getName()
+						);
+						sprintf(buf, "%02d:%02d:%02d", sTime.Hours, sTime.Minutes, sTime.Seconds);
+						u8g2.drawUTF8(64-u8g2.getUTF8Width(buf)/2, 12, buf);
+						u8g2.setDrawColor(1);
+						u8g2.setDrawColor(1);
 					} break;
 					case APP_ENUM::SNAKE_GAME: {
 						if (key_pressed_func(1)) {
@@ -564,18 +605,7 @@ void oled_func(void* argument) {
 					} break;
 					case APP_ENUM::animation3: {
 						// 动画3
-						if (time_seconds >= 60) {
-							time_seconds = 0;
-							time_minutes++;
-							if (time_minutes >= 60) {
-								time_minutes = 0;
-								time_hours++;
-								if (time_hours >= 12) {
-									time_hours = 0;
-								}
-							}
-						}
-						sw.draw(time_hours, time_minutes, time_seconds);
+						sw.draw(sTime.Hours, sTime.Minutes, sTime.Seconds);
 					} break;
 					case APP_ENUM::HANOI_GAME: {
 						if (key_pressed_func(1)) {
@@ -611,12 +641,13 @@ void oled_func(void* argument) {
 
 					} break;
 					case APP_ENUM::ui_test: {
-						u8g2.clearBuffer();
-						u8g2.setFont(u8g2_font_micro_mr);
-						for (int i = 0; i < sizeof(ui_list)/sizeof(str); i++) {
-							u8g2.drawUTF8(0, 6+6*i, ui_list[i]);
+						if (key_pressed_func(5, false)) {
+							list_selector.select_next_item();
 						}
-
+						if (key_pressed_func(6, false)) {
+							list_selector.select_prev_item();
+						}
+						list_selector.draw();
 					} break;
 					case APP_ENUM::key_test: {
 						alert_font = u8g2_font_NokiaSmallBold_tf;
@@ -659,9 +690,9 @@ void oled_func(void* argument) {
 		}
 
 
-		u8g2.setFont(u8g2_font_6x10_tf);
-		sprintf(buf, "address:%X", g_address);
-		u8g2.drawStr(0, 10, buf);
+		// u8g2.setFont(u8g2_font_6x10_tf);
+		// sprintf(buf, "address:%X", g_address);
+		// u8g2.drawStr(0, 10, buf);
 
 		u8g2.sendBuffer();
 		vTaskDelay(16);
