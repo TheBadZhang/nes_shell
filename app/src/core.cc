@@ -9,24 +9,9 @@
 // https://github.com/pondahai
 // nes 模拟器
 
-// 迷宫
-
 // 烟花动画
 
-// 扫雷
-
-// 2048
-
-// 五子棋（？
-
-// https://www.bilibili.com/video/BV1DP4y1S7XM
-// 俄罗斯方块
-
-// 生命游戏
-
 // 摄像头
-
-// base64 编解码库
 
 // 滚动数字时钟
 
@@ -85,7 +70,7 @@ extern const unsigned short test_img_128x128[][128];
 #include "square_watch.hpp"
 
 #include "list_selector.hpp"
-
+#include "app_selector.hpp"
 
 
 RTC_TimeTypeDef sTime;
@@ -245,22 +230,6 @@ enum class WINDOW {
 // u8g2_font_NokiaSmallBold_tf
 
 
-// 这两的顺序必须保持一致才可以
-enum class APP_ENUM {
-	WELCOM_SCENE = 0,
-	key_test,
-	art_generator,
-	ui_test,
-	ui_test2,
-	ui_test3,
-	animation1,
-	animation2,
-	animation3,
-	HANOI_GAME,
-	SNAKE_GAME,
-
-	main
-} now_app = APP_ENUM::main, next_app = APP_ENUM::main;
 
 void fade_to_next_scene(APP_ENUM app) {
 	// swap_animation(u8g2);
@@ -272,25 +241,6 @@ void next_scene_func(WINDOW scene) {
 	now_scene = scene;
 }
 
-uint8_t clock_app_icon[202] { 0x28, 0x28 };
-uint8_t animation_app_icon[202] { 0x28, 0x28 };
-uint8_t animation2_app_icon[202] { 0x28, 0x28 };
-extern const uint8_t bottom_arc[];
-int tbz::APP::now_select_app_id = 0;
-tbz::APP apps[] {
-	tbz::APP(unknow_app_icon, "WELCOM_SCENE"),
-	tbz::APP(unknow_app_icon, "按键测试"),
-	tbz::APP(unknow_app_icon, "艺术发生器"),
-	tbz::APP(unknow_app_icon, "ui_test"),
-	tbz::APP(unknow_app_icon, "ui_test2"),
-	tbz::APP(unknow_app_icon, "ui_test3"),
-	tbz::APP(animation_app_icon, "animation1"),
-	tbz::APP(animation2_app_icon, "animation2"),
-	tbz::APP(clock_app_icon,  "时钟"),
-	tbz::APP(hanoi_app_icon,  "汉诺塔"),
-	tbz::APP(unknow_app_icon, "贪吃蛇"),
-};
-tbz::game::hanoi hanoi;
 
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
@@ -298,19 +248,13 @@ tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 128, 128, 6);
 tbz::SPRITE_ANIMATION<4> ani3(snow_animation_pic, 72, 8, 8, 8, 40, 40, 9);
 tbz::SPRITE_ANIMATION<4> ani4(snow_animation_pic+72, 54, 8, 8, 8, 40, 40, 6);
 
+tbz::game::hanoi hanoi;
 tbz::round_watch_face rwf;
-
 tbz::SquareWatch sw;
-
-
+tbz::MODERN_ART_GENERATOR mag;
 tbz::game::SNAKE snake;
-// const char str122[] {"你好，世界"};
-// uint8_t str122_x, str122_y;
-// Create the QR code
-QRCode qrcode;
-const int qrcode_version = 3;
-uint8_t qrcodeData[tbz::qrcode::get_BufferSize(qrcode_version)];
-// uint8_t qrcodeData[512];
+tbz::QRCode qrcode;
+tbz::APP_SELECTOR app_selector;
 uint32_t g_address;
 
 
@@ -326,14 +270,19 @@ void oled_func(void* argument) {
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
 	// game_hanoi hanoi(&u8g2);
+	qrcode.set_U8G2(&u8g2);
+	qrcode.setContent("Hello World!");
 	hanoi.set_U8G2(&u8g2);
 	snake.set_U8G2(&u8g2);
 	ani1.set_U8G2(&u8g2);
 	ani2.set_U8G2(&u8g2);
 	sw.set_U8G2(&u8g2);
 	rwf.set_U8G2(&u8g2);
+	mag.set_U8G2(&u8g2);
+	mag.random_to_next();
 	list_selector.set_U8G2(&u8g2);
-	get_art_index_random();
+	app_selector.set_U8G2(&u8g2);
+	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
 	apps[6].setIconUpdateFunc([&ani3, &ani4](tbz::APP& app) {
 		app.getPic().clear();
@@ -393,23 +342,10 @@ void oled_func(void* argument) {
 
 	});
 
-	// now_scene = static_cast<WINDOW>(0);
 
-	qrcode_initText(&qrcode, qrcodeData, qrcode_version, 0, "HELLO WORLD");
-	// char* sss = (char*)malloc(128);
-
-	double ani_n = 0;
-	double ani_n_2 = 0;
-	double ani_n_3 = 1;
-	// ADC 定时采集
-	// HAL_TIM_Base_Start_IT(&htim16);
-	// str122_x = (128-u8g2.getUTF8Width(str122))/2;
-	// str122_y = (64+16)/2;
 	while (true) {
 
-		// u8g2.clearBuffer();
-
-
+		// 最高层级的弹窗
 		if (key_pressed_func(4)) {
 			switch(now_scene) {
 				default: {
@@ -422,30 +358,20 @@ void oled_func(void* argument) {
 			}
 		}
 
+		// 退出 APP 的动画
 		if (key_pressed_func(9)) {
 			if (now_app != APP_ENUM::main) {
 				next_app = APP_ENUM::main;
 				fade_to_next_scene(next_app);
-				ani_n_2 = 0;
+				app_selector.slide_in();
 			}
 		}
 
+		// 当前场景（部分动画或者弹窗依赖此状态）
 		switch (now_scene) {
 			case WINDOW::fade_animation: {
 				tbz::animation::slide(&u8g2, now_scene, next_scene);
 			} break;
-			// case WINDOW::window_start_animation: {
-			// 	tbz::animation::window_start(&u8g2, now_scene, next_scene);
-			// } break;
-			// case WINDOW::layer_in_animation: {
-			// 	tbz::animation::layer_in(&u8g2, now_scene, next_scene);
-			// } break;
-			// case WINDOW::layer_out_animation: {
-			// 	tbz::animation::layer_out(&u8g2, now_scene, next_scene);
-			// } break;
-			// case WINDOW::layer_in_animation: {
-			// 	ani_n_2 = 0;
-			// }
 			case WINDOW::alert: {
 				tbz::ui::menu::alert::draw(&u8g2);
 			} break;
@@ -454,88 +380,16 @@ void oled_func(void* argument) {
 				switch (now_app) {
 					case APP_ENUM::main: {
 						if (key_pressed_func(0)) {
-							tbz::APP::now_select_app_id--;
-							if (tbz::APP::now_select_app_id < 0) {
-								tbz::APP::now_select_app_id = sizeof(apps)/sizeof(tbz::APP)-1;
-								ani_n -= sizeof(apps)/sizeof(tbz::APP)-1;
-							} else {
-								ani_n += 1;
-							}
-							ani_n_3 = 1;
+							app_selector.select_prev_app();
 						}
 						if (key_pressed_func(10)) {
-							tbz::APP::now_select_app_id++;
-							if (tbz::APP::now_select_app_id >= sizeof(apps)/sizeof(tbz::APP)) {
-								tbz::APP::now_select_app_id = 0;
-								ani_n += sizeof(apps)/sizeof(tbz::APP)-1;
-							} else {
-								ani_n -= 1;
-							}
-							ani_n_3 = 1;
+							app_selector.select_next_app();
 						}
 						if (key_pressed_func(5)) {
 							next_app = static_cast<APP_ENUM>(tbz::APP::now_select_app_id);
 							fade_to_next_scene(next_app);
 						}
-						if (ani_n>0.01) ani_n -= 0.1*(ani_n+0.1);
-						else if(ani_n < -0.01) ani_n += 0.1*(-ani_n+0.1);
-
-						if (ani_n_2 < 1.0) ani_n_2 += 0.1;
-						else ani_n_2 = 1.0;
-
-						if (ani_n_3 > 0) ani_n_3 -= 0.1;
-						else ani_n_3 = 0;
-						u8g2.clearBuffer();
-						u8g2.setBitmapMode(1);
-
-
-						// APP 图标显示
-						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
-							// 使不同APP产生一定的弧度
-							// 使当前选中app显示在画面中间，且有切换动画
-							int x = 44+44*(i-tbz::APP::now_select_app_id-ani_n)*ani_n_2;
-							int y = 30+11*abs(i-tbz::APP::now_select_app_id-ani_n)*ani_n_2;
-							// 设置字体计算宽度使得文字居中
-							u8g2.setFont(u8g2_font_micro_mr);
-							int wstr = u8g2.getUTF8Width(apps[i].getName());
-							u8g2.drawStr(x+22-wstr/2, y-2, apps[i].getName());
-							// 跳过屏幕之外的元素
-							if (x < -40 || x > 127) continue;
-							// 更新APP图标，然后，绘制APP图标
-							apps[i].updateIcon();
-							draw_picture(&u8g2, x, y, apps[i].getPic().getBasePic());
-						}
-
-
-						// 底栏和顶栏显示
-						draw_pic(&u8g2, 0, 90, bottom_arc);
-						const int bubble_y = 109;
-						for (int i = 0; i < sizeof(apps)/sizeof(tbz::APP); i++) {
-							int x = 64+6*(i-tbz::APP::now_select_app_id-ani_n);
-							if (x < 0 || x > 127) continue;
-							u8g2.setDrawColor(0);
-							u8g2.drawFilledEllipse(x, bubble_y, 4, 4, U8G2_DRAW_ALL);
-							u8g2.setDrawColor(1);
-							if (i == tbz::APP::now_select_app_id) {
-								u8g2.drawFilledEllipse(x, bubble_y, 3, 3, U8G2_DRAW_ALL);
-							} else {
-								u8g2.drawCircle(x, bubble_y, 3, U8G2_DRAW_ALL);
-							}
-						}
-
-						u8g2.drawRBox(0, 0, 128, 15, 3);
-						u8g2.setFont(u8g2_font_wqy12_t_gb2312);
-						u8g2.setFontMode(1);
-						u8g2.setDrawColor(2);
-						u8g2.drawUTF8(
-							64-u8g2.getUTF8Width(apps[tbz::APP::now_select_app_id].getName())/2,
-							126+ani_n_3*14,
-							apps[tbz::APP::now_select_app_id].getName()
-						);
-						sprintf(buf, "%02d:%02d:%02d", sTime.Hours, sTime.Minutes, sTime.Seconds);
-						u8g2.drawUTF8(64-u8g2.getUTF8Width(buf)/2, 12, buf);
-						u8g2.setDrawColor(1);
-						u8g2.setDrawColor(1);
+						app_selector.draw();
 					} break;
 					case APP_ENUM::SNAKE_GAME: {
 						if (key_pressed_func(1)) {
@@ -561,41 +415,25 @@ void oled_func(void* argument) {
 					case APP_ENUM::ui_test3: {
 						u8g2.drawBox(0,0,20,20);
 						u8g2.drawBox(20,20,20,20);
-						u8g2.sendBuffer();
 						u8g2.drawFrame(10,40,20,20);
-						u8g2.sendBuffer();
 						u8g2.setFont(u8g2_font_DigitalDiscoThin_tf);
 						sprintf(buf,"%d",114514);
 						u8g2.drawStr(0,20,buf);
 					} break;
-					case APP_ENUM::ui_test2: {
-						const int screen_width = 128;
-						const int screen_height = 128;
-						const int screen_size = std::min(screen_width, screen_height);
-
-						auto size = 17+4*qrcode_version;
-						auto scale = screen_size/size;
-
-						auto offset_x = (screen_width-size*scale)/2;
-						auto offset_y = (screen_height-size*scale)/2;
-
-						for (uint8_t y = 0; y < qrcode.size; y++) {
-							for (uint8_t x = 0; x < qrcode.size; x++) {
-								u8g2.setDrawColor(qrcode_getModule(&qrcode, x, y) ? 1 : 0);
-								u8g2.drawBox(offset_x+scale*x, offset_y+scale*y, scale, scale);
-							}
-						}
-						u8g2.setDrawColor(1);
+					case APP_ENUM::qrcode_test: {
+						qrcode.draw();
 					} break;
 					case APP_ENUM::animation1: {
 						alert_font = u8g2_font_wqy16_t_gb2312;
 						sprintf(alert_message, "你好，世界");
-						// 动画1
-						// u8g2.drawUTF8(str122_x, str122_y, str122);
+						u8g2.setFont(u8g2_font_wqy16_t_gb2312);
+						int w = u8g2.getUTF8Width(alert_message);
+						int h = u8g2.getMaxCharHeight();
+						u8g2.drawUTF8(64-w/2, 64-h/2, "你好，世界");
 						ani1.draw();
 						ani2.draw();
 					} break;
-					case APP_ENUM::animation2: {
+					case APP_ENUM::adc_animation: {
 						// 动画2
 						HAL_ADC_Start(&hadc1);
 						HAL_ADC_PollForConversion(&hadc1, 50);
@@ -627,18 +465,10 @@ void oled_func(void* argument) {
 						hanoi.welcom_scene();
 					} break;
 					case APP_ENUM::art_generator: {
-						alert_font = u8g2_font_wqy16_t_gb2312;
-						sprintf(alert_message, "艺术发生器");
-						u8g2.clearBuffer();
 						if (key_pressed_func(0)) {
-							get_art_index_random();
+							mag.random_to_next();
 						}
-						u8g2.setFont(u8g2_font_wqy16_t_gb2312);
-						sprintf(buf, "%s%s的", verb[aaa], adj[bbb]);
-						u8g2.drawUTF8(0, 16, buf);
-						sprintf(buf, "%s", noun[ccc]);
-						u8g2.drawUTF8(0, 32, buf);
-
+						mag.draw();
 					} break;
 					case APP_ENUM::ui_test: {
 						if (key_pressed_func(5, false)) {
@@ -700,76 +530,11 @@ void oled_func(void* argument) {
 }
 
 
-// void test_span_print(U8G2* u8g2, std::span<char> span) {
-// 	u8g2->drawStr(0, 10, span.data());
-// }
-
 void core(void) {
 
-
-	// char test_span[] {"Hello World!"};
-	// std::span<char> test_span2(test_span, 6);
-
-
-	// extern void cdc_acm_init(void);
-	// cdc_acm_init();
-	// extern void cdc_acm_data_send_with_dtr_test();
-
-
-
-
-	// xTaskCreate((TaskFunction_t)led0_task,
-	// 			(const char*)"led_task",
-	// 			(uint16_t)128,
-	// 			(void*)NULL,
-	// 			(UBaseType_t)1,
-	// 			(TaskHandle_t*)&StartTask_Handler);
-	// vTaskStartScheduler();
-
-
-
-	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
-
-	u8g2.setFont(u8g2_font_6x10_tf);
-	u8g2.begin();
-
 	while (true) {
-		// key_scan();
-		u8g2.clearBuffer();
-		u8g2.drawStr(0, 10, "Hello World!");
-		int pressed_key_count = 0;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 5; j++) {
-				sprintf(buf, "%c", 'A'+i*5+j);
-				u8g2.drawStr(17+22*j, 43+22*i, buf);
-				if (key[i*5+j]) {
-					if (pressed_key_count < 6)
-						keyboard[2+pressed_key_count] = 4+5*i+j;
-					pressed_key_count ++;
-					u8g2.drawBox(11+22*j, 31+22*i, 19, 19);
-				} else {
-					keyboard[2+pressed_key_count] = 0;
-					u8g2.drawFrame(10+22*j, 30+22*i, 20, 20);
-				}
-
-				// if (i==0) {
-				// 	if (key[i*5+j])
-				// 		keyboard[2+j] = 4+j;
-				// 	else
-				// 		keyboard[2+j] = 0;
-				// }
-				// sprintf(buf, "key:%d", key[i]);
-			}
-		}
-
-		// HAL_SPI_Transmit()
-
-		sprintf (buf, "pressed:%d", pressed_key_count);
-		u8g2.drawStr(0, 20, buf);
-		u8g2.sendBuffer();
-		// USBD_HID_SendReport(&hUsbDeviceHS,(uint8_t*)&keyboard,sizeof(keyboard));
 		flip(LED);
-		// delay(500);
+		delay(500);
 	}
 
 }
