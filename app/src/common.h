@@ -10,6 +10,7 @@ extern SPI_HandleTypeDef hspi6;
 extern DMA_HandleTypeDef hdma_spi4_tx;
 extern DMA_HandleTypeDef hdma_spi6_tx;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+extern UART_HandleTypeDef huart1;
 
 extern TIM_HandleTypeDef htim15;
 extern TIM_HandleTypeDef htim16;

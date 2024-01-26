@@ -81,13 +81,6 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for LED */
-osThreadId_t LEDHandle;
-const osThreadAttr_t LED_attributes = {
-  .name = "LED",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -105,7 +98,6 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_SPI6_Init(void);
-static void MX_USART1_UART_Init(void);
 static void MX_RNG_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
 static void MX_I2C1_Init(void);
@@ -115,8 +107,8 @@ static void MX_RTC_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM15_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void *argument);
-extern void led0_task(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -170,7 +162,6 @@ int main(void)
   MX_ADC2_Init();
   MX_I2C2_Init();
   MX_SPI6_Init();
-  MX_USART1_UART_Init();
   MX_RNG_Init();
   MX_USB_OTG_HS_PCD_Init();
   MX_I2C1_Init();
@@ -181,6 +172,7 @@ int main(void)
   MX_LIBJPEG_Init();
   MX_TIM16_Init();
   MX_TIM15_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -207,9 +199,6 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of LED */
-  LEDHandle = osThreadNew(led0_task, NULL, &LED_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

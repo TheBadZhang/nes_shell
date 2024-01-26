@@ -160,17 +160,29 @@ const char lua_test[] = R"(
 	print("exp(200) =", math.exp(200))
 )";
 
-lua_State *lua_state_L;
+
+extern "C" int uart_send(lua_State* L) {
+	char* str = (char*)luaL_checkstring(L, 1);
+	HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), 0xffff);
+	return 0;
+}
 
 static const struct luaL_Reg mylib[] ={
 	{"flip",lua_flip_LED},
 	{NULL,NULL}
 };
 extern "C" void led0_task(void* argument) {
+	lua_State *L;
+	L = luaL_newstate();
+	luaL_openlibs(L);
+	luaopen_base(L);
+
+	lua_register(L, "flip", lua_flip_LED);
+	lua_register(L, "uart_send", uart_send);
 
 	while (true) {
-		if (luaL_dostring(lua_state_L, "flip()") != LUA_OK) {
-			char* err = (char*)lua_tostring(lua_state_L, -1);
+		if (luaL_dostring(L, "flip()") != LUA_OK) {
+			char* err = (char*)lua_tostring(L, -1);
 		}
 		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
@@ -180,6 +192,12 @@ extern "C" void led0_task(void* argument) {
 	}
 }
 
+osThreadId_t LEDHandle;
+const osThreadAttr_t LED_attributes = {
+	.name = "LED",
+	.stack_size = 1024 * 4,
+	.priority = (osPriority_t) osPriorityNormal,
+};
 osThreadId_t ANOOLEDHandle;
 const osThreadAttr_t ANOOLED_attributes = {
 	.name = "OLED",
@@ -201,17 +219,13 @@ const osThreadAttr_t ips_attributes = {
 void oled_function(void* argument);
 void ips_func(void* argument);
 extern "C" void load(void) {
-	lua_state_L = luaL_newstate();
-	luaL_openlibs(lua_state_L);
-	luaopen_base(lua_state_L);
-
-	lua_register(lua_state_L, "flip", lua_flip_LED);
 	uint32_t random_seed = 0;
 	HAL_RNG_GenerateRandomNumber(&hrng, &random_seed);
 	srand(random_seed);
 	ipsHandle = osThreadNew(ips_func, NULL, &ips_attributes);
 	ANOOLEDHandle = osThreadNew(oled_function, NULL, &ANOOLED_attributes);
 	keyscanHandle = osThreadNew(key_scan, NULL, &keyscan_attributes);
+	keyscanHandle = osThreadNew(led0_task, NULL, &LED_attributes);
 }
 
 extern "C" time_t time(time_t * time){
