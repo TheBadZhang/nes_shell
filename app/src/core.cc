@@ -60,7 +60,6 @@
 // #include "tinyexpr.h"
 #include "hanoi.hpp"
 #include "snake.hpp"
-// #include "sound_wave.hpp"
 
 
 extern const unsigned short test_img_128x128[][128];
@@ -73,6 +72,7 @@ extern const unsigned short test_img_128x128[][128];
 #include "animation.hpp"
 #include "round_watch_face.hpp"
 #include "square_watch.hpp"
+#include "sound_wave.hpp"
 
 #include "list_selector.hpp"
 #include "app_selector.hpp"
@@ -203,6 +203,10 @@ extern "C" void load(void) {
 void ips_func(void* argument) {
 	// tbz::tft::st7735::init();
 	// vTaskDelay(100);
+	// 屏幕背光 PWM
+	// __HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, 99);
+	// HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1);
+
 	tbz::tft::st7735::fillScreen(tbz::tft::st7735::COLOR::BLACK);
 	// int i = 0;
 	// uint16_t c[] { 0x0000,0x001F,0xF800,0x07E0,0x07FF,0xF81F,0xFFE0,0xFFFF };
@@ -262,6 +266,7 @@ tbz::MODERN_ART_GENERATOR mag;
 tbz::game::SNAKE snake;
 tbz::QRCode qrcode;
 tbz::APP_SELECTOR app_selector;
+tbz::SOUND_WAVE sound_wave;
 uint32_t g_address;
 
 
@@ -274,8 +279,6 @@ char base64_in[] {"Hello World!"};
 uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
-
-uint16_t __attribute__((section (".dma_sram"))) adc_result[512] {0};
 
 void oled_function(void* argument) {
 
@@ -296,6 +299,8 @@ void oled_function(void* argument) {
 	rwf.set_U8G2(&u8g2);
 	mag.set_U8G2(&u8g2);
 	mag.random_to_next();
+	sound_wave.set_U8G2(&u8g2);
+	sound_wave.setup();
 	list_selector.set_U8G2(&u8g2);
 	app_selector.set_U8G2(&u8g2);
 	app_selector.setTime(sTime);
@@ -324,9 +329,9 @@ void oled_function(void* argument) {
 
 	apps[7].setIconUpdateFunc([](tbz::APP& app) {
 		app.getPic().clear();
-		int adc_view1 = adc_result[0]/65536.0*40, adc_view2 = 0;
+		int adc_view1 = adc_value[0]/32768.0*40, adc_view2 = 0;
 		for (int i = 0; i < 40; i++) {
-			adc_view2 = adc_result[i+1]/65536.0*40;
+			adc_view2 = adc_value[i+1]/32768.0*40;
 			app.getPic().drawLine(i, adc_view1,i+1, adc_view2);
 			adc_view1 = adc_view2;
 		}
@@ -374,8 +379,6 @@ void oled_function(void* argument) {
 	});
 
 
-	HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-	HAL_ADC_Start_DMA(&hadc2, (uint32_t*)adc_result, 128);
 
 
 	while (true) {
@@ -472,17 +475,8 @@ void oled_function(void* argument) {
 					} break;
 					case APP_ENUM::adc_animation: {
 						// 动画2
-						// HAL_ADC_Start(&hadc1);
-						// HAL_ADC_PollForConversion(&hadc1, 50);
-
-						rwf.draw(adc_result[0]/33.0);
-		int adc_view1 = adc_result[0]/65536.0*40, adc_view2 = 0;
-		for (int i = 0; i < 128; i++) {
-			adc_view2 = adc_result[i+1]/65536.0*40;
-			u8g2.drawLine(i, 64+adc_view1,i+1, 64+adc_view2);
-			adc_view1 = adc_view2;
-		}
-						// sound_wave.draw_sound_wave();
+						rwf.draw(adc_value[0]*1000/65536);
+						sound_wave.draw();
 					} break;
 					case APP_ENUM::animation3: {
 						// 动画3
@@ -563,9 +557,9 @@ void oled_function(void* argument) {
 		}
 
 		// u8g2.setFont(u8g2_font_6x10_tf);
-		// sprintf(buf, "address:%X", adc_result);
+		// sprintf(buf, "address:%X", adc_value);
 		// u8g2.drawStr(0, 10, buf);
-		// sprintf(buf, "adc:%dmv", adc_result[0]);
+		// sprintf(buf, "adc:%dmv", adc_value[0]);
 		// u8g2.drawStr(0, 20, buf);
 
 
@@ -591,14 +585,14 @@ void core(void) {
 // 	}
 // }
 
-// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+// extern "C" void my_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 // 	static unsigned int cnt = 0;
-// 	if (htim == (&htim10)) {
-// 		if (cnt == adc_size) {
+// 	if (htim == (&htim16)) {
+// 		if (cnt >= adc_size) {
 // 			cnt = 0;
-// 			fft_calc();
+// 			// fft_calc();
 // 		}
-// 		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adc_value+cnt), 1);
+// 		HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adc_value+cnt), 1);
 // 		cnt++;
 // 	}
 // }

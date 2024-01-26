@@ -11,6 +11,8 @@ extern DMA_HandleTypeDef hdma_spi4_tx;
 extern DMA_HandleTypeDef hdma_spi6_tx;
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
+extern TIM_HandleTypeDef htim15;
+extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
 extern RTC_HandleTypeDef hrtc;
 extern RNG_HandleTypeDef hrng;
