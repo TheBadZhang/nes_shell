@@ -216,7 +216,6 @@
         "codebase/algorithm",
         "codebase/lib/cJSON",
         "codebase/lib/sqlite",
-        "codebase/lib/tinyexpr",
         "codebase/src",
         "Drivers/startup_stm32h7b0xx.s",
         "codebase/lib/cherry_usb/third_party",

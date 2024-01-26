@@ -57,7 +57,7 @@
 
 #include "xbmp_describ.hpp"
 
-// #include "tinyexpr.h"
+#include "tinyexpr.h"
 #include "hanoi.hpp"
 #include "snake.hpp"
 
@@ -139,34 +139,43 @@ char buf[128];
 
 
 
-int lua_flip_LED(lua_State *L) {
+extern "C" int lua_flip_LED(lua_State *L) {
 	flip(LED);
 	return 0;
 }
 
+const char lua_test[] = R"(
+	print("Hello,I am lua!\n--this is newline printf")
+	function foo()
+		local i = 0
+		local sum = 1
+		while i <= 10 do
+			sum = sum * 2
+			i = i + 1
+		end
+		return sum
+	end
+	print("sum =", foo())
+	print("and sum = 2^11 =", 2 ^ 11)
+	print("exp(200) =", math.exp(200))
+)";
 
+lua_State *lua_state_L;
+
+static const struct luaL_Reg mylib[] ={
+	{"flip",lua_flip_LED},
+	{NULL,NULL}
+};
 extern "C" void led0_task(void* argument) {
 
-
-	// auto L = luaL_newstate();
-	// // bLua::reg_global_func(L, "flip_LED1", lua_flip_LED1);
-	// // bLua::reg_global_func(L, "delay", HAL_Delay);
-	// luaL_openlibs(L);
-
-	// lua_register(L, "flip_LED", lua_flip_LED);
-
-	// const char* test = R"(
-	// 	function test()
-	// 		flip_LED()
-	// 	end
-	// )";
-
 	while (true) {
-		flip(LED);
+		if (luaL_dostring(lua_state_L, "flip()") != LUA_OK) {
+			char* err = (char*)lua_tostring(lua_state_L, -1);
+		}
+		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-		// luaL_dostring(L, test);
 		vTaskDelay(500);
 	}
 }
@@ -174,13 +183,13 @@ extern "C" void led0_task(void* argument) {
 osThreadId_t ANOOLEDHandle;
 const osThreadAttr_t ANOOLED_attributes = {
 	.name = "OLED",
-	.stack_size = 1024 * 4,
+	.stack_size = 1024 * 10,
 	.priority = (osPriority_t) osPriorityNormal,
 };
 osThreadId_t keyscanHandle;
 const osThreadAttr_t keyscan_attributes = {
 	.name = "key_scan",
-	.stack_size = 1024 * 4,
+	.stack_size = 1024,
 	.priority = (osPriority_t) osPriorityNormal,
 };
 osThreadId_t ipsHandle;
@@ -192,6 +201,11 @@ const osThreadAttr_t ips_attributes = {
 void oled_function(void* argument);
 void ips_func(void* argument);
 extern "C" void load(void) {
+	lua_state_L = luaL_newstate();
+	luaL_openlibs(lua_state_L);
+	luaopen_base(lua_state_L);
+
+	lua_register(lua_state_L, "flip", lua_flip_LED);
 	uint32_t random_seed = 0;
 	HAL_RNG_GenerateRandomNumber(&hrng, &random_seed);
 	srand(random_seed);
@@ -199,6 +213,15 @@ extern "C" void load(void) {
 	ANOOLEDHandle = osThreadNew(oled_function, NULL, &ANOOLED_attributes);
 	keyscanHandle = osThreadNew(key_scan, NULL, &keyscan_attributes);
 }
+
+extern "C" time_t time(time_t * time){
+	return 0;
+}
+extern "C" int system(const char * string){
+	return 0;
+}
+
+
 
 void ips_func(void* argument) {
 	// tbz::tft::st7735::init();
@@ -287,6 +310,9 @@ void oled_function(void* argument) {
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
+
+	uint8_t* rrrrr = new uint8_t[13];
+	uint8_t* rrrrr2 = new uint8_t[13];
 
 	// game_hanoi hanoi(&u8g2);
 	qrcode.set_U8G2(&u8g2);
@@ -546,6 +572,29 @@ void oled_function(void* argument) {
 						u8g2.drawStr(0, 110, buf);
 
 					} break;
+					case APP_ENUM::ui_test2: {
+						u8g2.clearBuffer();
+						for (int i = 0; i < 128; i++) {
+							for (int j = 0; j < 128; j++) {
+								if (i < 64 || i > 128 || j < 20 || j > 44)
+								if ((i^j)&1) u8g2.drawPixel(i, j);
+							}
+							// u8g2.drawLine(64, 20, 128, 20);
+							// u8g2.drawLine(64, 20, 64, 44);
+							// u8g2.drawLine(128,20, 128,44);
+							// u8g2.drawLine(64,44,128,44);
+							u8g2.drawStr(33,38, "WARNING");
+							// u8g2.drawRBox()
+							// u8g2.drawBox(64, 20, 64, 24);
+						}
+						int error;
+
+						int a = (int)te_interp("(5+5)", 0); // Returns 10.
+						int b = (int)te_interp("(5+5)", &error); // Returns 10, error is set to 0.
+						int c = (int)te_interp("(5+5", &error);
+						sprintf(buf, "(5+5)=%d", a);
+						u8g2.drawStr(0, 70, buf);
+					}
 				}
 			} break;
 
@@ -557,10 +606,15 @@ void oled_function(void* argument) {
 		}
 
 		// u8g2.setFont(u8g2_font_6x10_tf);
-		// sprintf(buf, "address:%X", adc_value);
+		// 	u8g2.drawStr(0, 30, err);
+		// sprintf(buf, "address:%X", rrrrr);
 		// u8g2.drawStr(0, 10, buf);
 		// sprintf(buf, "adc:%dmv", adc_value[0]);
 		// u8g2.drawStr(0, 20, buf);
+		// sprintf(buf, "address:%X", rrrrr2);
+		// u8g2.drawStr(0, 30, buf);
+		// sprintf(buf, "address:%X", rrrrr+13);
+		// u8g2.drawStr(0, 40, buf);
 
 
 		u8g2.sendBuffer();
@@ -578,21 +632,5 @@ void core(void) {
 
 }
 
-// void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin) {
-// 	if (GPIO_Pin == KEY_Pin) {
-// 		USBVcom_printf("Key pressed:%d\r\nresult:%lf\r\n", count++, te_interp("1+2+3+4+5+6+7+8+9+10", nullptr));
-// 		// __HAL_GPIO_EXTI_CLEAR_IT(KEY_Pin);
-// 	}
-// }
 
-// extern "C" void my_HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-// 	static unsigned int cnt = 0;
-// 	if (htim == (&htim16)) {
-// 		if (cnt >= adc_size) {
-// 			cnt = 0;
-// 			// fft_calc();
-// 		}
-// 		HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adc_value+cnt), 1);
-// 		cnt++;
-// 	}
-// }
+
