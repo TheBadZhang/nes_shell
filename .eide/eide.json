@@ -161,7 +161,12 @@
         "app/Drivers",
         "app/startup_stm32h7b0xx.s",
         "codebase/ui",
-        "codebase/app"
+        "codebase/app",
+        "app/LIBJPEG",
+        "app/Utilities",
+        "codebase/lib/cmsis-dsp",
+        "codebase/lib/qrcode",
+        "codebase/lib/base64"
       ],
       "toolchain": "GCC",
       "compileConfig": {

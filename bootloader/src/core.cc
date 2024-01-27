@@ -162,22 +162,50 @@ static void JumpToApp(void) {
 	}
 }
 
-// #include "oled.h"
+#include "oled.h"
 
-// uint32_t g_address = 0;
+
+
+uint8_t screen_buffer[128*128/2];
+unsigned char ucTemp[128];
+
+static void oledWrite(unsigned char *pData, int iLen)
+{
+	clr(M_CS);
+	HAL_SPI_Transmit(&hspi6, pData, iLen, 1000);
+	set(M_CS);
+} /* oledWrite() */
+// static void ssd1327WriteCommandBlock()
+static void ssd1327WriteDataBlock(unsigned char *ucBuf, int iLen)
+{
+	clr(M_DC);
+  oledWrite(ucTemp, iLen);
+} /* ssd1327WriteDataBlock() */
+//
+// Send commands to position the "cursor" (aka memory write address)
+// to the given row and column as well as the ending col/row
+//
+static void ssd1327SetPosition(int x, int y, int cx, int cy)
+{
+	unsigned char bbbuf[8];
+
+	bbbuf[0] = 0x00; // command introducer
+	bbbuf[1] = 0x15; // column start/end
+	bbbuf[2] = x/2; // start address
+	bbbuf[3] = (uint8_t)(((x+cx)/2)-1); // end address
+	bbbuf[4] = 0x75; // row start/end
+	//    if (oled_type == OLED_96x96)
+	//       y += 32;
+	bbbuf[5] = y; // start row
+	bbbuf[6] = y+cy-1; // end row
+	set(M_DC);
+	oledWrite(bbbuf+1, 6);
+	clr(M_DC);
+} /* ssd1327SetPosition() */
+
 
 void core(void) {
 
-
-	// U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
-	// // U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
-	// u8g2.begin();
-
-	// u8g2.setFont(u8g2_font_6x10_tf);
-	// sprintf(buf, "address:%X", g_address);
-	// u8g2.drawStr(0, 10, buf);
-
-	// u8g2.sendBuffer();
 	tbz::tft::st7735::init();
 	tbz::tft::st7735::fillScreen(tbz::tft::st7735::COLOR::BLACK);
 	tbz::tft::st7735::writeString(0, 0, "Hello World!", Font_7x10, tbz::tft::st7735::COLOR::WHITE, tbz::tft::st7735::COLOR::BLACK);
@@ -221,9 +249,31 @@ void core(void) {
 	// JumpToApp();
 	// jump2();
 
+	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
+	u8g2.begin();
+
 	while (true) {
+		u8g2.setFont(u8g2_font_6x10_tf);
+		u8g2.drawCircle(64,64,32,U8G2_DRAW_ALL);
+		u8g2.sendBuffer();
+
 		flip(LED);
 		tbz::timer::delay_ms(50);
+		// ssd1327SetPosition(0, 0, 64, 64);
+		// auto ptr = u8g2.getBufferPtr();
+		// for (int i = 0; i < 128*128/8; i++) {
+		// 	// auto pixe = ptr[i];
+		// 	auto pixe = 0x55;
+		// 	screen_buffer[1+i*4] = (pixe & 0x01) | ((pixe & 0x02) << 3);
+		// 	screen_buffer[1+i*4+1] = ((pixe & 0x04) >> 2) | ((pixe & 0x08) << 1);
+		// 	screen_buffer[1+i*4+2] = ((pixe & 0x10) >> 4) | ((pixe & 0x20) >> 1);
+		// 	screen_buffer[1+i*4+3] = ((pixe & 0x40) >> 6) | ((pixe & 0x80) >> 3);
+		// }
+		// std::fill(screen_buffer, screen_buffer+64*64/2, 0x50);
+		// // ssd1327WriteDataBlock(screen_buffer, 64*64/2);
+		// for (int i = 0; i < 32; i ++) {
+		// 	ssd1327WriteDataBlock(screen_buffer+i*64/2, 64/2);
+		// }
 	}
 
 }

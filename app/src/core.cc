@@ -200,7 +200,7 @@ const osThreadAttr_t LED_attributes = {
 osThreadId_t ANOOLEDHandle;
 const osThreadAttr_t ANOOLED_attributes = {
 	.name = "OLED",
-	.stack_size = 1024 * 10,
+	.stack_size = 1024 * 20,
 	.priority = (osPriority_t) osPriorityNormal,
 };
 osThreadId_t keyscanHandle;
@@ -316,50 +316,59 @@ uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
 
-static void oledWrite(unsigned char *pData, int iLen) {
-	HAL_SPI_Transmit_DMA(&hspi6, pData, iLen);
-	while (HAL_SPI_GetState(&hspi6) != HAL_SPI_STATE_READY);
-}
+#include "ssd1327.h"
+uint8_t __attribute__((section (".bdma2_sram"))) screen_buffer[128*128/2];
+unsigned char ucTemp[128];
 
+
+void ssd1327_writeCommand(uint8_t command) {
+	clr(M_DC);
+	clr(M_CS);
+	HAL_SPI_Transmit(&hspi6, &command, 1, 1000);
+	set(M_CS);
+	set(M_DC);
+}
+void ssd1327_writeData(uint8_t data) {
+	set(M_DC);
+	clr(M_CS);
+	HAL_SPI_Transmit(&hspi6, &data, 1, 1000);
+	set(M_CS);
+	set(M_DC);
+}
+static void oledWrite(unsigned char *pData, int iLen) {
+	set(M_DC);
+	clr(M_CS);
+	HAL_SPI_Transmit(&hspi6, pData, iLen, 1000);
+	// HAL_SPI_Transmit_DMA(&hspi6, pData, iLen);
+	// while(HAL_SPI_GetState(&hspi6) != HAL_SPI_STATE_READY);
+	set(M_CS);
+	set(M_DC);
+} /* oledWrite() */
+// static void ssd1327WriteCommandBlock()
+static void ssd1327WriteDataBlock(unsigned char *ucBuf, int iLen) {
+  oledWrite(ucTemp, iLen);
+} /* ssd1327WriteDataBlock() */
+//
+// Send commands to position the "cursor" (aka memory write address)
+// to the given row and column as well as the ending col/row
+//
 static void ssd1327SetPosition(int x, int y, int cx, int cy)
 {
-unsigned char buf[8];
-	constexpr int OLED_128x128 = 0; // SSD1327
-	constexpr int OLED_256x64 = 1;  // SSD1322
-	constexpr int OLED_96x96 = 2;   // SSD1329
-	auto oled_type = 0;
-  buf[0] = 0x00; // command introducer
-  buf[1] = 0x15; // column start/end
-  if (oled_type == OLED_256x64)
-  {
-    oledWrite(buf, 2);
-    buf[0] = 0x40; // data
-    buf[1] = 28 + (x/4); // strange SSD1322 mapping
-    buf[2] = 28 + (((x+cx)/4)-1);
-    oledWrite(buf, 3); // need to write this part as data
-    buf[0] = 0x00; // command
-    buf[1] = 0x75; // set row
-    oledWrite(buf, 2);
-    buf[0] = 0x40; // data
-    buf[1] = y;
-    buf[2] = y+cy-1;
-    oledWrite(buf, 3);
-    buf[0] = 0x00; // command
-    buf[1] = 0x5c; // enable RAM write
-    oledWrite(buf, 2);
-  }
-  else
-  {
-    buf[2] = x/2; // start address
-    buf[3] = (uint8_t)(((x+cx)/2)-1); // end address
-    buf[4] = 0x75; // row start/end
-//    if (oled_type == OLED_96x96)
-//       y += 32;
-    buf[5] = y; // start row
-    buf[6] = y+cy-1; // end row
-    oledWrite(buf, 7);
-  }
+	unsigned char bbbuf[8];
+
+	bbbuf[0] = 0x15; // column start/end
+	bbbuf[1] = x/2; // start address
+	bbbuf[2] = (uint8_t)(((x+cx)/2)-1); // end address
+	bbbuf[3] = 0x75; // row start/end
+	//    if (oled_type == OLED_96x96)
+	//       y += 32;
+	bbbuf[4] = y; // start row
+	bbbuf[5] = y+cy-1; // end row
+	for (int i = 0; i < 6; i++) {
+		ssd1327_writeCommand(bbbuf[i]);
+	}
 } /* ssd1327SetPosition() */
+
 void oled_function(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
@@ -367,6 +376,7 @@ void oled_function(void* argument) {
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
+	ssd1327SetPosition(0, 0, 128, 128);
 
 	uint8_t* rrrrr = new uint8_t[13];
 	uint8_t* rrrrr2 = new uint8_t[13];
@@ -463,7 +473,8 @@ void oled_function(void* argument) {
 
 	});
 
-
+	int box_x = 0, box_y = 0;
+	int box_w = 40, box_h = 40;
 
 
 	while (true) {
@@ -678,9 +689,87 @@ void oled_function(void* argument) {
 		// u8g2.drawStr(0, 40, buf);
 		fps_count0 ++;
 
-		u8g2.sendBuffer();
-		// ssd1327SetPosition(0, 0, 128, 128);
+		// Row_Address(0, 64);
+		// Column_Address(0, 128);
+		// OLED_Clear(0, 0, 128, 128, 0xc3);
+
+		// u8g2.clearBuffer();
+		// // u8g2.drawCircle(32, 32, 16, U8G2_DRAW_ALL);
+		// u8g2.drawLine(0, 0, 100, 100);
+		// if (key_pressed_func(0)) {
+		// 	box_x -= 1;
+		// }
+		// if (key_pressed_func(1)) {
+		// 	box_x += 1;
+		// }
+		// if (key_pressed_func(5)) {
+		// 	box_y -= 1;
+		// }
+		// if (key_pressed_func(6)) {
+		// 	box_y += 1;
+		// }
+		// if (key_pressed_func(2)) {
+		// 	box_w -= 1;
+		// }
+		// if (key_pressed_func(7)) {
+		// 	box_w += 1;
+		// }
+		// if (key_pressed_func(3)) {
+		// 	box_h -= 1;
+		// }
+		// if (key_pressed_func(8)) {
+		// 	box_h += 1;
+		// }
+		// u8g2.drawBox(box_x, box_y, box_w, box_h);
+
+		auto ptr = u8g2.getBufferPtr();
+		for (int y = 0; y < 16; y++) {
+			for (int x = 0; x < 64; x++) {
+				// u8g2 像素先垂直后水平扫描
+				auto pixe = *ptr++;
+				for (int k = 0; k < 8; k++) {
+					screen_buffer[(y*8+k)*64+x] &= 0x0f;
+					screen_buffer[(y*8+k)*64+x] |= (pixe >> k) & 0x01 ? 0xf0 : 0x00;
+				}
+				pixe = *ptr++;
+				for (int k = 0; k < 8; k++) {
+					screen_buffer[(y*8+k)*64+x] &= 0xf0;
+					screen_buffer[(y*8+k)*64+x] |= (pixe >> k) & 0x01 ? 0x0f : 0x00;
+				}
+			}
+			// for (int j = 0; j < 4; j++) {
+			// 	auto ppixe = (pixe >> (j*2)) & 0x03;
+			// 	screen_buffer[i*4+j] = (ppixe & 0x02 ? 0x0f : 0x00) | (ppixe & 0x01 ? 0xf0 : 0x00);
+			// }
+			// screen_buffer[1+i*4+3] = (pixe & 0x01) | ((pixe & 0x02) << 3);
+			// screen_buffer[1+i*4+2] = ((pixe & 0x04) >> 2) | ((pixe & 0x08) << 1);
+			// screen_buffer[1+i*4+1] = ((pixe & 0x10) >> 4) | ((pixe & 0x20) >> 1);
+			// screen_buffer[1+i*4+0] = ((pixe & 0x40) >> 6) | ((pixe & 0x80) >> 3);
+		}
+		// std::fill(screen_buffer, screen_buffer+64*64/2, 0x50);
+		// ssd1327WriteDataBlock(screen_buffer, 64*64/2);
+		// const int length_of_trans = 128*64;
+		oledWrite(screen_buffer, 128*64);
+		// for (int i = 0; i < 128*64/length_of_trans; i++) {
+		// 	// ssd1327_writeData(screen_buffer[i]);
+		// 	oledWrite(screen_buffer+i*length_of_trans, length_of_trans);
+		// }
+		// for (int i = 0; i < 32; i ++) {
+		// 	ssd1327WriteDataBlock(screen_buffer+i*64/2, 64/2);
+		// }
+
+		// u8g2.sendBuffer();
+
+		// for (int y=0; y<128; y++)
+		// {
+		// 	for (int x=0; x<128/32; x++)
+		// 	{
+		// 	ssd1327WriteDataBlock(screen_buffer+(y*128/32+x), 16);
+		// 	} // for x
+		// } // for y
+		// HAL_SPI_Transmit(&hspi6, u8g2.getBufferPtr(), 128*128/8, 1000);
 		// HAL_SPI_Transmit_DMA(&hspi6, u8g2.getBufferPtr(), 128*128/8);
+		// u8g2.sendBuffer();
 		// if (fps_count*2 >= 60) {
 		// 	delay_fps += 0.3;
 		// 	if (delay_fps > 100.0) delay_fps = 100.0;
@@ -688,7 +777,9 @@ void oled_function(void* argument) {
 		// 	delay_fps -= 0.3;
 		// 	if (delay_fps < 0.0) delay_fps = 0.0;
 		// }
-		vTaskDelay(5);
+		// ssd1327_writeCommand(0xA5);
+		vTaskDelay(10);
+		// ssd1327_writeCommand(0xA6);
 	}
 }
 
@@ -714,6 +805,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 			case APP_ENUM::adc_animation: {
 				sound_wave.fft_calc();
 			}
+			default: {}
 		}
 	}
 }
