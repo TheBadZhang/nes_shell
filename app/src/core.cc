@@ -26,9 +26,6 @@
 // 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
 // 多级菜单，列表
 
-// malloc 的问题
-// lua 调用问题还没有解决
-
 // libjpeg dma2d
 
 // APP 调试的问题
@@ -84,7 +81,8 @@ RTC_DateTypeDef sDate;
 #include "qrcode.hpp"
 #include "modern_art_generator.hpp"
 
-int count = 0;
+int fps_count0 = 0;
+int fps_count = 30;
 
 uint8_t keyboard[8] {0,0,0,0,0,0,0,0};
 
@@ -94,7 +92,6 @@ bool key_pressed_flag[16] {false};  // 单次按键
 
 void key_scan(void* argument) {
 	while (true) {
-
 		set(R1);
 		key[0] = read(C5);
 		key[1] = read(C4);
@@ -144,7 +141,7 @@ extern "C" int lua_flip_LED(lua_State *L) {
 	return 0;
 }
 
-const char lua_test[] = R"(
+const char lua_test[] {R"(
 	print("Hello,I am lua!\n--this is newline printf")
 	function foo()
 		local i = 0
@@ -158,7 +155,7 @@ const char lua_test[] = R"(
 	print("sum =", foo())
 	print("and sum = 2^11 =", 2 ^ 11)
 	print("exp(200) =", math.exp(200))
-)";
+)"};
 
 
 extern "C" int uart_send(lua_State* L) {
@@ -181,6 +178,8 @@ extern "C" void led0_task(void* argument) {
 	lua_register(L, "uart_send", uart_send);
 
 	while (true) {
+		fps_count = fps_count0;
+		fps_count0 = 0;
 		if (luaL_dostring(L, "flip()") != LUA_OK) {
 			char* err = (char*)lua_tostring(L, -1);
 		}
@@ -195,7 +194,7 @@ extern "C" void led0_task(void* argument) {
 osThreadId_t LEDHandle;
 const osThreadAttr_t LED_attributes = {
 	.name = "LED",
-	.stack_size = 1024 * 4,
+	.stack_size = 1024 * 4,    // 调用 lua 函数需要一个足够的栈空间
 	.priority = (osPriority_t) osPriorityNormal,
 };
 osThreadId_t ANOOLEDHandle;
@@ -317,6 +316,50 @@ uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
 
+static void oledWrite(unsigned char *pData, int iLen) {
+	HAL_SPI_Transmit_DMA(&hspi6, pData, iLen);
+	while (HAL_SPI_GetState(&hspi6) != HAL_SPI_STATE_READY);
+}
+
+static void ssd1327SetPosition(int x, int y, int cx, int cy)
+{
+unsigned char buf[8];
+	constexpr int OLED_128x128 = 0; // SSD1327
+	constexpr int OLED_256x64 = 1;  // SSD1322
+	constexpr int OLED_96x96 = 2;   // SSD1329
+	auto oled_type = 0;
+  buf[0] = 0x00; // command introducer
+  buf[1] = 0x15; // column start/end
+  if (oled_type == OLED_256x64)
+  {
+    oledWrite(buf, 2);
+    buf[0] = 0x40; // data
+    buf[1] = 28 + (x/4); // strange SSD1322 mapping
+    buf[2] = 28 + (((x+cx)/4)-1);
+    oledWrite(buf, 3); // need to write this part as data
+    buf[0] = 0x00; // command
+    buf[1] = 0x75; // set row
+    oledWrite(buf, 2);
+    buf[0] = 0x40; // data
+    buf[1] = y;
+    buf[2] = y+cy-1;
+    oledWrite(buf, 3);
+    buf[0] = 0x00; // command
+    buf[1] = 0x5c; // enable RAM write
+    oledWrite(buf, 2);
+  }
+  else
+  {
+    buf[2] = x/2; // start address
+    buf[3] = (uint8_t)(((x+cx)/2)-1); // end address
+    buf[4] = 0x75; // row start/end
+//    if (oled_type == OLED_96x96)
+//       y += 32;
+    buf[5] = y; // start row
+    buf[6] = y+cy-1; // end row
+    oledWrite(buf, 7);
+  }
+} /* ssd1327SetPosition() */
 void oled_function(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
@@ -346,6 +389,8 @@ void oled_function(void* argument) {
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
 
+	float delay_fps = 5;
+
 	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 	base64_out[base64_out_len] = '\0';
 
@@ -369,9 +414,9 @@ void oled_function(void* argument) {
 
 	apps[7].setIconUpdateFunc([](tbz::APP& app) {
 		app.getPic().clear();
-		int adc_view1 = adc_value[0]/32768.0*40, adc_view2 = 0;
+		int adc_view1 = adc_value2[0]/32768.0*40, adc_view2 = 0;
 		for (int i = 0; i < 40; i++) {
-			adc_view2 = adc_value[i+1]/32768.0*40;
+			adc_view2 = adc_value2[i+1]/32768.0*40;
 			app.getPic().drawLine(i, adc_view1,i+1, adc_view2);
 			adc_view1 = adc_view2;
 		}
@@ -467,6 +512,7 @@ void oled_function(void* argument) {
 							next_app = static_cast<APP_ENUM>(tbz::APP::now_select_app_id);
 							fade_to_next_scene(next_app);
 						}
+						app_selector.setFPS(fps_count/0.5);
 						app_selector.draw();
 					} break;
 					case APP_ENUM::SNAKE_GAME: {
@@ -515,7 +561,7 @@ void oled_function(void* argument) {
 					} break;
 					case APP_ENUM::adc_animation: {
 						// 动画2
-						rwf.draw(adc_value[0]*1000/65536);
+						rwf.draw(adc_value2[0]*1000/65536);
 						sound_wave.draw();
 					} break;
 					case APP_ENUM::animation3: {
@@ -623,16 +669,26 @@ void oled_function(void* argument) {
 		// 	u8g2.drawStr(0, 30, err);
 		// sprintf(buf, "address:%X", rrrrr);
 		// u8g2.drawStr(0, 10, buf);
-		// sprintf(buf, "adc:%dmv", adc_value[0]);
+		// sprintf(buf, "adc:%dmv", adc_value2[0]);
 		// u8g2.drawStr(0, 20, buf);
-		// sprintf(buf, "address:%X", rrrrr2);
+		// sprintf(buf, "count:%d", adc_count);
 		// u8g2.drawStr(0, 30, buf);
+		// adc_count = 0;
 		// sprintf(buf, "address:%X", rrrrr+13);
 		// u8g2.drawStr(0, 40, buf);
-
+		fps_count0 ++;
 
 		u8g2.sendBuffer();
-		vTaskDelay(16);
+		// ssd1327SetPosition(0, 0, 128, 128);
+		// HAL_SPI_Transmit_DMA(&hspi6, u8g2.getBufferPtr(), 128*128/8);
+		// if (fps_count*2 >= 60) {
+		// 	delay_fps += 0.3;
+		// 	if (delay_fps > 100.0) delay_fps = 100.0;
+		// } else if (fps_count*2 <= 40) {
+		// 	delay_fps -= 0.3;
+		// 	if (delay_fps < 0.0) delay_fps = 0.0;
+		// }
+		vTaskDelay(5);
 	}
 }
 
@@ -647,4 +703,17 @@ void core(void) {
 }
 
 
+// DMA 完成一次设置的完整转换（2048下）进入这个中断
+// 这里对波形进行傅里叶变换可以避免数据拷贝造成的频谱混叠
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+	if(hadc==&hadc2) {
 
+		std::copy(adc_value, adc_value+adc_size, adc_value2);
+		// 但是它不应该总是在进行计算，所以应该想办法避免应用未启动时计算频谱
+		switch (now_app) {
+			case APP_ENUM::adc_animation: {
+				sound_wave.fft_calc();
+			}
+		}
+	}
+}

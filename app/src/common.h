@@ -18,4 +18,7 @@ extern TIM_HandleTypeDef htim17;
 extern RTC_HandleTypeDef hrtc;
 extern RNG_HandleTypeDef hrng;
 
+
+extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
+
 #endif
