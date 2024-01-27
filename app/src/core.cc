@@ -312,7 +312,7 @@ uint8_t screen_buffer[128*128/2];
 uint8_t screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
 PIC screen_pic(screen_buffer2, [](PIC& pic) {
 	pic.mode = PIC::MODE::BIT4;
-	pic.color = 0x01;
+	pic.setColor(0x01);
 });
 
 
@@ -337,7 +337,7 @@ void oled_function(void* argument) {
 	rwf.set_U8G2(&u8g2);
 	mag.set_U8G2(&u8g2);
 	mag.random_to_next();
-	sound_wave.set_U8G2(&u8g2);
+	sound_wave.setPic(&screen_pic);
 	sound_wave.setup();
 	list_selector.set_U8G2(&u8g2);
 	app_selector.set_U8G2(&u8g2);
@@ -372,6 +372,7 @@ void oled_function(void* argument) {
 			}
 		}
 
+		screen_pic.clear();
 		// 当前场景（部分动画或者弹窗依赖此状态）
 		switch (now_scene) {
 			case WINDOW::fade_animation: {
@@ -562,7 +563,7 @@ void oled_function(void* argument) {
 		fps_count0 ++;
 
 		// screen_pic.drawBox(30, 30, 100, 100);
-		screen_pic.clear();
+		screen_pic.setColor(0x1);
 		ani1.draw2(screen_pic);
 		ani2.draw2(screen_pic);
 
@@ -586,7 +587,6 @@ void oled_function(void* argument) {
 			screen_buffer[i] |= screen_buffer2[i+2];
 		}
 		screenWrite(screen_buffer, 128*64);
-
 		vTaskDelay(10);
 	}
 }
