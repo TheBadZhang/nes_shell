@@ -52,7 +52,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "xbmp_describ.hpp"
+#include "libxbmp.hpp"
 
 #include "tinyexpr.h"
 #include "hanoi.hpp"
@@ -71,12 +71,12 @@ extern const unsigned short test_img_128x128[][128];
 #include "square_watch.hpp"
 #include "sound_wave.hpp"
 
+RTC_TimeTypeDef sTime;
+RTC_DateTypeDef sDate;
+
 #include "list_selector.hpp"
 #include "app_selector.hpp"
 
-
-RTC_TimeTypeDef sTime;
-RTC_DateTypeDef sDate;
 
 #include "qrcode.hpp"
 #include "modern_art_generator.hpp"
@@ -290,9 +290,6 @@ void next_scene_func(WINDOW scene) {
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
 tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 128, 128, 6);
-tbz::SPRITE_ANIMATION<4> ani3(snow_animation_pic, 72, 8, 8, 8, 40, 40, 9);
-tbz::SPRITE_ANIMATION<4> ani4(snow_animation_pic+72, 54, 8, 8, 8, 40, 40, 6);
-extern const uint8_t fireworks_pic[];
 // tbz::SPRITE_ANIMATION<1> fireworks(fireworks_pic+2, fireworks_pic[0], fireworks_pic[1], 40, 40, 40, 40, 8);
 
 tbz::game::hanoi hanoi;
@@ -303,12 +300,7 @@ tbz::game::SNAKE snake;
 tbz::QRCode qrcode;
 tbz::APP_SELECTOR app_selector;
 tbz::SOUND_WAVE sound_wave;
-uint32_t g_address;
 
-
-double radians(double degrees) {
-	return degrees * 3.14159265357 / 180;
-}
 
 #include "base64.h"
 char base64_in[] {"Hello World!"};
@@ -316,58 +308,14 @@ uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
 
-#include "ssd1327.h"
-uint8_t __attribute__((section (".bdma2_sram"))) screen_buffer[128*128/2];
-unsigned char ucTemp[128];
+uint8_t screen_buffer[128*128/2];
+uint8_t screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
+PIC screen_pic(screen_buffer2, [](PIC& pic) {
+	pic.mode = PIC::MODE::BIT4;
+	pic.color = 0x01;
+});
 
 
-void ssd1327_writeCommand(uint8_t command) {
-	clr(M_DC);
-	clr(M_CS);
-	HAL_SPI_Transmit(&hspi6, &command, 1, 1000);
-	set(M_CS);
-	set(M_DC);
-}
-void ssd1327_writeData(uint8_t data) {
-	set(M_DC);
-	clr(M_CS);
-	HAL_SPI_Transmit(&hspi6, &data, 1, 1000);
-	set(M_CS);
-	set(M_DC);
-}
-static void oledWrite(unsigned char *pData, int iLen) {
-	set(M_DC);
-	clr(M_CS);
-	HAL_SPI_Transmit(&hspi6, pData, iLen, 1000);
-	// HAL_SPI_Transmit_DMA(&hspi6, pData, iLen);
-	// while(HAL_SPI_GetState(&hspi6) != HAL_SPI_STATE_READY);
-	set(M_CS);
-	set(M_DC);
-} /* oledWrite() */
-// static void ssd1327WriteCommandBlock()
-static void ssd1327WriteDataBlock(unsigned char *ucBuf, int iLen) {
-  oledWrite(ucTemp, iLen);
-} /* ssd1327WriteDataBlock() */
-//
-// Send commands to position the "cursor" (aka memory write address)
-// to the given row and column as well as the ending col/row
-//
-static void ssd1327SetPosition(int x, int y, int cx, int cy)
-{
-	unsigned char bbbuf[8];
-
-	bbbuf[0] = 0x15; // column start/end
-	bbbuf[1] = x/2; // start address
-	bbbuf[2] = (uint8_t)(((x+cx)/2)-1); // end address
-	bbbuf[3] = 0x75; // row start/end
-	//    if (oled_type == OLED_96x96)
-	//       y += 32;
-	bbbuf[4] = y; // start row
-	bbbuf[5] = y+cy-1; // end row
-	for (int i = 0; i < 6; i++) {
-		ssd1327_writeCommand(bbbuf[i]);
-	}
-} /* ssd1327SetPosition() */
 
 void oled_function(void* argument) {
 
@@ -377,9 +325,6 @@ void oled_function(void* argument) {
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
 	ssd1327SetPosition(0, 0, 128, 128);
-
-	uint8_t* rrrrr = new uint8_t[13];
-	uint8_t* rrrrr2 = new uint8_t[13];
 
 	// game_hanoi hanoi(&u8g2);
 	qrcode.set_U8G2(&u8g2);
@@ -399,82 +344,8 @@ void oled_function(void* argument) {
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
 
-	float delay_fps = 5;
-
 	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 	base64_out[base64_out_len] = '\0';
-
-	apps[2].setIconUpdateFunc([&fireworks_pic](tbz::APP& app) {
-		app.getPic().clear();
-		// fireworks.draw2(app.getPic());
-		static int i = 0;
-		app.getPic().drawXBMP(0, 0, 40, 40, (const uint8_t*)(2+fireworks_pic+i*5*40));
-		app.getPic().drawFrame(0, 0, 40, 40);
-		i++;
-		if (i > 7) i = 0;
-	});
-
-	apps[6].setIconUpdateFunc([&ani3, &ani4](tbz::APP& app) {
-		app.getPic().clear();
-		ani3.draw2(app.getPic());
-		ani4.draw2(app.getPic());
-		app.getPic().drawFrame(0, 0, 40, 40);
-
-	});
-
-	apps[7].setIconUpdateFunc([](tbz::APP& app) {
-		app.getPic().clear();
-		int adc_view1 = adc_value2[0]/32768.0*40, adc_view2 = 0;
-		for (int i = 0; i < 40; i++) {
-			adc_view2 = adc_value2[i+1]/32768.0*40;
-			app.getPic().drawLine(i, adc_view1,i+1, adc_view2);
-			adc_view1 = adc_view2;
-		}
-	});
-
-	apps[8].setIconUpdateFunc([&sTime](tbz::APP& app) {
-		auto& app_icon = app.getPic();
-
-		app_icon.clear();
-		app_icon.drawFilledCircle(20, 20, 4);
-
-		int hand_angle = sTime.Seconds*6;
-		int hand_lenght_long = 16;
-		int hand_legth_short = 10;
-		int center_x = 20;
-		int center_y = 20;
-		float xpos;
-		float ypos;
-		float xpos2;
-		float ypos2;
-
-
-		// draw 60 dots (pixels) around the circle, one for every minute/second
-		for (int i=0; i<12; i++) { // draw 60 pixels around the circle
-			xpos = round(center_x + sin(radians(i * 30)) * 17); // calculate x pos based on angle and radius
-			ypos = round(center_y - cos(radians(i * 30)) * 17); // calculate y pos based on angle and radius
-
-			app_icon.drawPixel(xpos,ypos); // draw white pixel on position xpos and ypos
-		}
-
-		// calculate starting and ending position of the second hand
-		xpos = round(center_x + sin(radians(hand_angle)) * hand_lenght_long); // calculate x pos based on angle and radius
-		ypos = round(center_y - cos(radians(hand_angle)) * hand_lenght_long); // calculate y pos based on angle and radius
-		xpos2 = round(center_x + sin(radians(hand_angle + 180)) * hand_legth_short); // calculate x pos based on angle and radius
-		ypos2 = round(center_y - cos(radians(hand_angle + 180)) * hand_legth_short); // calculate y pos based on angle and radius
-
-		app_icon.drawLine(xpos, ypos, xpos2, ypos2); // draw the main line
-		// u8g2 -> drawLine(xpos, ypos, xpos2, ypos2); // draw the main line
-		// u8g2 -> setDrawColor(0); // black color
-		// u8g2 -> drawDisc(xpos2, ypos2, 3); // draw small filled black circle
-		// u8g2 -> setDrawColor(1); // white color
-		app_icon.drawCircle(xpos2, ypos2, 3);
-		app_icon.drawCircle(center_x, center_y, 19);
-
-	});
-
-	int box_x = 0, box_y = 0;
-	int box_w = 40, box_h = 40;
 
 
 	while (true) {
@@ -671,9 +542,9 @@ void oled_function(void* argument) {
 
 
 			// case WINDOW::unexist_scene:
-			// default: {
-			// 	now_scene = WINDOW::normal_status;
-			// } break;
+			default: {
+				now_scene = WINDOW::normal_status;
+			} break;
 		}
 
 		// u8g2.setFont(u8g2_font_6x10_tf);
@@ -687,99 +558,36 @@ void oled_function(void* argument) {
 		// adc_count = 0;
 		// sprintf(buf, "address:%X", rrrrr+13);
 		// u8g2.drawStr(0, 40, buf);
+
 		fps_count0 ++;
 
-		// Row_Address(0, 64);
-		// Column_Address(0, 128);
-		// OLED_Clear(0, 0, 128, 128, 0xc3);
+		// screen_pic.drawBox(30, 30, 100, 100);
+		screen_pic.clear();
+		ani1.draw2(screen_pic);
+		ani2.draw2(screen_pic);
 
-		// u8g2.clearBuffer();
-		// // u8g2.drawCircle(32, 32, 16, U8G2_DRAW_ALL);
-		// u8g2.drawLine(0, 0, 100, 100);
-		// if (key_pressed_func(0)) {
-		// 	box_x -= 1;
-		// }
-		// if (key_pressed_func(1)) {
-		// 	box_x += 1;
-		// }
-		// if (key_pressed_func(5)) {
-		// 	box_y -= 1;
-		// }
-		// if (key_pressed_func(6)) {
-		// 	box_y += 1;
-		// }
-		// if (key_pressed_func(2)) {
-		// 	box_w -= 1;
-		// }
-		// if (key_pressed_func(7)) {
-		// 	box_w += 1;
-		// }
-		// if (key_pressed_func(3)) {
-		// 	box_h -= 1;
-		// }
-		// if (key_pressed_func(8)) {
-		// 	box_h += 1;
-		// }
-		// u8g2.drawBox(box_x, box_y, box_w, box_h);
 
+		constexpr uint8_t trans_white = 0xf;
+		constexpr uint8_t trans_black = 0x0;
 		auto ptr = u8g2.getBufferPtr();
-		for (int y = 0; y < 16; y++) {
-			for (int x = 0; x < 64; x++) {
+		for (int y = 0; y < 128/8; y++) {     // 8行一组
+			for (int x = 0; x < 128/2; x++) { // 2个像素一个字节
 				// u8g2 像素先垂直后水平扫描
-				auto pixe = *ptr++;
+				auto pixe1 = *ptr++;
+				auto pixe2 = *ptr++;
 				for (int k = 0; k < 8; k++) {
-					screen_buffer[(y*8+k)*64+x] &= 0x0f;
-					screen_buffer[(y*8+k)*64+x] |= (pixe >> k) & 0x01 ? 0xf0 : 0x00;
-				}
-				pixe = *ptr++;
-				for (int k = 0; k < 8; k++) {
-					screen_buffer[(y*8+k)*64+x] &= 0xf0;
-					screen_buffer[(y*8+k)*64+x] |= (pixe >> k) & 0x01 ? 0x0f : 0x00;
+					auto ppixe1 = (pixe1 >> k) & 0x01 ? trans_white : trans_black;
+					auto ppixe2 = (pixe2 >> k) & 0x01 ? trans_white : trans_black;
+					screen_buffer[(y*8+k)*64+x] = (ppixe1 << 4) | ppixe2;
 				}
 			}
-			// for (int j = 0; j < 4; j++) {
-			// 	auto ppixe = (pixe >> (j*2)) & 0x03;
-			// 	screen_buffer[i*4+j] = (ppixe & 0x02 ? 0x0f : 0x00) | (ppixe & 0x01 ? 0xf0 : 0x00);
-			// }
-			// screen_buffer[1+i*4+3] = (pixe & 0x01) | ((pixe & 0x02) << 3);
-			// screen_buffer[1+i*4+2] = ((pixe & 0x04) >> 2) | ((pixe & 0x08) << 1);
-			// screen_buffer[1+i*4+1] = ((pixe & 0x10) >> 4) | ((pixe & 0x20) >> 1);
-			// screen_buffer[1+i*4+0] = ((pixe & 0x40) >> 6) | ((pixe & 0x80) >> 3);
 		}
-		// std::fill(screen_buffer, screen_buffer+64*64/2, 0x50);
-		// ssd1327WriteDataBlock(screen_buffer, 64*64/2);
-		// const int length_of_trans = 128*64;
-		oledWrite(screen_buffer, 128*64);
-		// for (int i = 0; i < 128*64/length_of_trans; i++) {
-		// 	// ssd1327_writeData(screen_buffer[i]);
-		// 	oledWrite(screen_buffer+i*length_of_trans, length_of_trans);
-		// }
-		// for (int i = 0; i < 32; i ++) {
-		// 	ssd1327WriteDataBlock(screen_buffer+i*64/2, 64/2);
-		// }
+		for (int i = 0; i < 128*128/2; i++) {
+			screen_buffer[i] |= screen_buffer2[i+2];
+		}
+		screenWrite(screen_buffer, 128*64);
 
-		// u8g2.sendBuffer();
-
-		// for (int y=0; y<128; y++)
-		// {
-		// 	for (int x=0; x<128/32; x++)
-		// 	{
-		// 	ssd1327WriteDataBlock(screen_buffer+(y*128/32+x), 16);
-		// 	} // for x
-		// } // for y
-		// HAL_SPI_Transmit(&hspi6, u8g2.getBufferPtr(), 128*128/8, 1000);
-		// HAL_SPI_Transmit_DMA(&hspi6, u8g2.getBufferPtr(), 128*128/8);
-		// u8g2.sendBuffer();
-		// if (fps_count*2 >= 60) {
-		// 	delay_fps += 0.3;
-		// 	if (delay_fps > 100.0) delay_fps = 100.0;
-		// } else if (fps_count*2 <= 40) {
-		// 	delay_fps -= 0.3;
-		// 	if (delay_fps < 0.0) delay_fps = 0.0;
-		// }
-		// ssd1327_writeCommand(0xA5);
 		vTaskDelay(10);
-		// ssd1327_writeCommand(0xA6);
 	}
 }
 
