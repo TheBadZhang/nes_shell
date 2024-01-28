@@ -37,6 +37,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <string>
 // #include <string>
 
 #include "lua.hpp"
@@ -80,6 +81,27 @@ RTC_DateTypeDef sDate;
 
 #include "qrcode.hpp"
 #include "modern_art_generator.hpp"
+
+// #include "fmt.h"
+// #include "tinyformat.h"
+// #include <format>
+
+// char print_buffer[128]{0};
+// int uart_print(const char*fmt,...) {
+// 	va_list list;
+// 	va_start(list, fmt);
+// 	int str_len = vsnprintf(print_buffer,sizeof(print_buffer), fmt, list);
+// 	va_end(list);
+// 	HAL_UART_Transmit(&huart4, (uint8_t*)print_buffer, str_len, 1000);
+// }
+// fmt/core
+// #include "format.h"
+// void my_print (const std::string& str) {
+// 	HAL_UART_Transmit(&huart4, (uint8_t*)str.c_str(), str.length(), 1000);
+// }
+#define my_printf(buf_, fmt_, x_...) \
+	int len_ = sprintf(buf_, fmt_, x_); \
+	HAL_UART_Transmit(&huart4, (uint8_t*)buf_, len_, 1000);
 
 int fps_count0 = 0;
 int fps_count = 30;
@@ -135,7 +157,6 @@ char buf[128];
 
 
 
-
 extern "C" int lua_flip_LED(lua_State *L) {
 	flip(LED);
 	return 0;
@@ -160,7 +181,7 @@ const char lua_test[] {R"(
 
 extern "C" int uart_send(lua_State* L) {
 	char* str = (char*)luaL_checkstring(L, 1);
-	HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), 0xffff);
+	HAL_UART_Transmit(&huart4, (uint8_t*)str, strlen(str), 0xffff);
 	return 0;
 }
 
@@ -183,6 +204,16 @@ extern "C" void led0_task(void* argument) {
 		if (luaL_dostring(L, "flip()") != LUA_OK) {
 			char* err = (char*)lua_tostring(L, -1);
 		}
+		// int retlen = sprintf(buf, "HELLO WORLD");
+		// HAL_UART_Transmit(&huart4, (uint8_t*)buf, retlen, 1000);
+		// std::string str_r = tfm::format("%s", "Hello World!");
+		// std::string buf2;
+		// sprintf(buf, "HELLO WORLD");
+		// HAL_UART_Transmit(&huart4, (uint8_t*)buf2.c_str(), buf2.size(), 1000);
+		// HAL_UART_Transmit(&huart4, (uint8_t*)"HELLO WORLD", 12, 1000);
+		// my_print(fmt::format("The answer is {}.", 42));
+		// uart_print("HELLO WORLD");
+		my_printf(buf, "fps:%d\n", fps_count);
 		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
@@ -286,6 +317,7 @@ void next_scene_func(WINDOW scene) {
 	now_scene = scene;
 }
 
+extern const uint8_t psychic_swamp[];
 
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
@@ -537,7 +569,17 @@ void oled_function(void* argument) {
 						int c = (int)te_interp("(5+5", &error);
 						sprintf(buf, "(5+5)=%d", a);
 						u8g2.drawStr(0, 70, buf);
-					}
+					} break;
+					case APP_ENUM::MINESWEEPER_GAME: {
+						draw_pic(&u8g2, 0, 0, psychic_swamp);
+					} break;
+					default: {
+						u8g2.clearBuffer();
+						u8g2.setFont(u8g2_font_wqy16_t_gb2312);
+						sprintf(buf, "-无信号-");
+						int str_w = u8g2.getUTF8Width(buf);
+						u8g2.drawUTF8(64-str_w/2, 64+16/2, buf);
+					} break;
 				}
 			} break;
 

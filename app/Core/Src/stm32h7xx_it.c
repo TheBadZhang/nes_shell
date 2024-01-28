@@ -61,6 +61,8 @@ extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_spi4_tx;
 extern SPI_HandleTypeDef hspi4;
 extern TIM_HandleTypeDef htim16;
+extern DMA_HandleTypeDef hdma_uart4_rx;
+extern DMA_HandleTypeDef hdma_uart4_tx;
 extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN EV */
@@ -180,6 +182,34 @@ void DMA1_Stream0_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 stream2 global interrupt.
+  */
+void DMA1_Stream2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart4_rx);
+  /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 stream3 global interrupt.
+  */
+void DMA1_Stream3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart4_tx);
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream4 global interrupt.
   */
 void DMA1_Stream4_IRQHandler(void)
@@ -248,34 +278,6 @@ void TIM16_IRQHandler(void)
   /* USER CODE BEGIN TIM16_IRQn 1 */
 
   /* USER CODE END TIM16_IRQn 1 */
-}
-
-/**
-  * @brief This function handles BDMA2 channel0 global interrupt.
-  */
-void BDMA2_Channel0_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA2_Channel0_IRQn 0 */
-
-  /* USER CODE END BDMA2_Channel0_IRQn 0 */
-
-  /* USER CODE BEGIN BDMA2_Channel0_IRQn 1 */
-
-  /* USER CODE END BDMA2_Channel0_IRQn 1 */
-}
-
-/**
-  * @brief This function handles BDMA2 channel2 global interrupt.
-  */
-void BDMA2_Channel2_IRQHandler(void)
-{
-  /* USER CODE BEGIN BDMA2_Channel2_IRQn 0 */
-
-  /* USER CODE END BDMA2_Channel2_IRQn 0 */
-
-  /* USER CODE BEGIN BDMA2_Channel2_IRQn 1 */
-
-  /* USER CODE END BDMA2_Channel2_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
