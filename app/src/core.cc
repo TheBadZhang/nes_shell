@@ -318,6 +318,10 @@ void next_scene_func(WINDOW scene) {
 }
 
 extern const uint8_t psychic_swamp[];
+extern const uint8_t tsetBones[];
+extern const uint8_t tsetLava[];
+extern const uint8_t tsetSand[];
+extern const uint8_t tsetTower[];
 
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
@@ -342,8 +346,8 @@ int base64_out_len;
 
 uint8_t screen_buffer[128*128/2];
 uint8_t screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
-PIC screen_pic(screen_buffer2, [](PIC& pic) {
-	pic.mode = PIC::MODE::BIT4;
+tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
+	pic.mode = tbz::PIC::MODE::BIT4;
 	pic.setColor(0x01);
 });
 
@@ -571,7 +575,13 @@ void oled_function(void* argument) {
 						u8g2.drawStr(0, 70, buf);
 					} break;
 					case APP_ENUM::MINESWEEPER_GAME: {
-						draw_pic(&u8g2, 0, 0, psychic_swamp);
+						// draw_pic(&u8g2, 0, 0, psychic_swamp);
+						// draw_pic(&u8g2, 0, 0, tsetBones);
+						// screen_pic.setMode(tbz::PIC::MODE::BIT4);
+						screen_pic.drawXBMP(0, 0, 64, 64, tsetBones+2);
+						screen_pic.drawXBMP(64, 0, 64, 64, tsetLava+2);
+						screen_pic.drawXBMP(0, 64, 64, 64, tsetSand+2);
+						screen_pic.drawXBMP(64, 64, 64, 64, tsetTower+2);
 					} break;
 					default: {
 						u8g2.clearBuffer();
@@ -604,10 +614,14 @@ void oled_function(void* argument) {
 
 		fps_count0 ++;
 
+
+		//! 没办法处理BIT4的PIC绘制BIT1的素材
+		//! 这个问题可能之后会尝试解决一下吧
 		// screen_pic.drawBox(30, 30, 100, 100);
-		screen_pic.setColor(0x1);
-		ani1.draw2(screen_pic);
-		ani2.draw2(screen_pic);
+		// screen_pic.setMode(tbz::PIC::MODE::BIT1).setColor(0x1);
+		// scrren_pic.setColor(0x1);
+		// ani1.draw2(screen_pic);
+		// ani2.draw2(screen_pic);
 
 
 		constexpr uint8_t trans_white = 0xf;
