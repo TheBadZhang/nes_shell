@@ -38,7 +38,7 @@
 #include <cmath>
 #include <ctime>
 #include <string>
-// #include <string>
+#include <array>
 
 #include "lua.hpp"
 
@@ -351,8 +351,67 @@ tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
 	pic.setColor(0x01);
 });
 
+namespace tbz{
+struct POINT {
+	float x, y;
+	float dir_x, dir_y;
+};
+class 动态蜘蛛网 {
+private:
+	PIC* pic;
+	std::array<POINT, 10> points;
+	// POINT points[10];
+	struct {
+		int point_size = 2;
+		int line_distance = 20;
+	} config;
+	void update(void) {
+		for (int i = 0; i < points.size(); i++) {
+			points[i].x += points[i].dir_x;
+			points[i].y += points[i].dir_y;
+			if (points[i].x < config.point_size || points[i].x > 128-config.point_size) {
+				points[i].dir_x = -points[i].dir_x;
+			}
+			if (points[i].y < config.point_size || points[i].y > 128-config.point_size) {
+				points[i].dir_y = -points[i].dir_y;
+			}
+		}
 
-
+	}
+public:
+	动态蜘蛛网(void) {}
+	动态蜘蛛网& setup(void) {
+		for (int i = 0; i < points.size(); i++) {
+			points[i].x = rand()%128;
+			points[i].y = rand()%128;
+			float speed = 0.5;
+			float angle = rand()%36000/100.0;
+			points[i].dir_x = speed*cos(radians(angle));
+			points[i].dir_y = speed*sin(radians(angle));
+		}
+		return *this;
+	}
+	动态蜘蛛网& setPic(PIC* p) {
+		pic = p;
+		return *this;
+	}
+	动态蜘蛛网& draw(void) {
+		pic -> setColor(0x0a);
+		update();
+		for (int i = 0; i < points.size(); i++) {
+			pic -> fillCircle(points[i].x, points[i].y, config.point_size);
+			for (int j = 0; j < points.size(); j++) {
+				if (i != j)
+				if (std::hypot(points[i].x-points[j].x, points[i].y-points[j].y) < config.line_distance) {
+					pic -> drawLine(points[i].x, points[i].y, points[j].x, points[j].y);
+				}
+			}
+		}
+		return *this;
+	}
+};
+}
+tbz::动态蜘蛛网 spider_web;
 void oled_function(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
@@ -373,8 +432,8 @@ void oled_function(void* argument) {
 	rwf.set_U8G2(&u8g2);
 	mag.set_U8G2(&u8g2);
 	mag.random_to_next();
-	sound_wave.setPic(&screen_pic);
-	sound_wave.setup();
+	sound_wave.setPic(&screen_pic).setup();
+	spider_web.setPic(&screen_pic).setup();
 	list_selector.set_U8G2(&u8g2);
 	app_selector.set_U8G2(&u8g2);
 	app_selector.setTime(sTime);
@@ -408,7 +467,8 @@ void oled_function(void* argument) {
 			}
 		}
 
-		screen_pic.clear();
+		// screen_pic.clear();
+		screen_pic.fade_clear();
 		// 当前场景（部分动画或者弹窗依赖此状态）
 		switch (now_scene) {
 			case WINDOW::fade_animation: {
@@ -558,20 +618,20 @@ void oled_function(void* argument) {
 								if (i < 64 || i > 128 || j < 20 || j > 44)
 								if ((i^j)&1) u8g2.drawPixel(i, j);
 							}
-							// u8g2.drawLine(64, 20, 128, 20);
-							// u8g2.drawLine(64, 20, 64, 44);
-							// u8g2.drawLine(128,20, 128,44);
-							// u8g2.drawLine(64,44,128,44);
-							u8g2.drawStr(33,38, "WARNING");
-							// u8g2.drawRBox()
-							// u8g2.drawBox(64, 20, 64, 24);
 						}
+						// u8g2.drawLine(64, 20, 128, 20);
+						// u8g2.drawLine(64, 20, 64, 44);
+						// u8g2.drawLine(128,20, 128,44);
+						// u8g2.drawLine(64,44,128,44);
+						u8g2.drawStr(33,38, "WARNING");
+						// u8g2.drawRBox()
+						// u8g2.drawBox(64, 20, 64, 24);
 						int error;
 
-						int a = (int)te_interp("(5+5)", 0); // Returns 10.
+						// int a = (int)te_interp("(5+5)", 0); // Returns 10.
 						int b = (int)te_interp("(5+5)", &error); // Returns 10, error is set to 0.
-						int c = (int)te_interp("(5+5", &error);
-						sprintf(buf, "(5+5)=%d", a);
+						// int c = (int)te_interp("(5+5", &error);
+						sprintf(buf, "(5+5)=%d", b);
 						u8g2.drawStr(0, 70, buf);
 					} break;
 					case APP_ENUM::MINESWEEPER_GAME: {
@@ -619,6 +679,8 @@ void oled_function(void* argument) {
 		screen_pic.setColor(0x1);
 		ani1.draw2(screen_pic);
 		ani2.draw2(screen_pic);
+		// screen_pic.setColor(0xa);
+		spider_web.draw();
 
 
 		constexpr uint8_t trans_white = 0xf;
