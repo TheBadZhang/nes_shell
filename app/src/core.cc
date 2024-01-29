@@ -615,13 +615,10 @@ void oled_function(void* argument) {
 		fps_count0 ++;
 
 
-		//! 没办法处理BIT4的PIC绘制BIT1的素材
-		//! 这个问题可能之后会尝试解决一下吧
 		// screen_pic.drawBox(30, 30, 100, 100);
-		// screen_pic.setMode(tbz::PIC::MODE::BIT1).setColor(0x1);
-		// scrren_pic.setColor(0x1);
-		// ani1.draw2(screen_pic);
-		// ani2.draw2(screen_pic);
+		screen_pic.setColor(0x1);
+		ani1.draw2(screen_pic);
+		ani2.draw2(screen_pic);
 
 
 		constexpr uint8_t trans_white = 0xf;
