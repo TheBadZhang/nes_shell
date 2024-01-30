@@ -1,55 +1,6 @@
 #include "core.h"
 #include "common.h"
 
-// https://github.com/Robert-van-Engelen/tinylisp
-// 尝试添加一个 lisp repl 到项目当中
-
-// https://www.taterli.com/3199/
-// https://twitter.com/shuichi_takano/status/1477702448907419649
-// https://github.com/pondahai
-// nes 模拟器
-
-// https://wokwi.com/projects/376479299848582145 （电池充电）
-// https://wokwi.com/projects/328271658006610514 （旋转立方体）
-// https://wokwi.com/projects/376931330900285441 （指南针）
-// https://wokwi.com/projects/385987811439126529 （水平指南针）
-
-// 手写数字识别
-
-// 摄像头
-
-// 滚动数字时钟
-
-//TODO: PIC.drawXBMP 右边界绘制，还有左边界绘制
-// APP 进入退出动画可以考虑重新设计一个更富有动画效果的
-// 文字超过范围滚动显示
-// 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
-// 多级菜单，列表
-
-// 1602模拟器
-
-// 感觉现在性能的瓶颈在读写flash上面，外部flash的速度实在是太慢，无法支撑这么高的主频
-// 写一个内存池管理，用于管理整个DTCMRAM的内容，把一些内容提前预读到内存池当中，这样可以提高读写速度
-// 静态的图片（flash中）甚至比动态的图片（ram中）还要更吃处理
-// 静态图片（48fps）动态图片（52fps）
-// APP选择器底部的弧形甚至会产生10fps的波动
-
-// oled点亮非常不稳定，试着重新实现一个驱动，怀疑是u8g2的锅
-// 这个问题解决了一下，发现是设置绘制区域离初始化完成太近了
-// 隔一段时间设置就可以稳定点亮了
-
-// 试着把pic数组移动到dtcm里面，看看能否提升一定的速度（失败，甚至无法点亮屏幕了）
-
-// 使用xmake构建dsp库生成指定版本的lib文件（优化编译速度）
-
-// 但是项目书里面提到了使用到了psram和nand flash，要用的话引脚绝对不够用了
-// 目前感觉ram还是比较够用的
-
-// ⚀⚁⚂⚃⚄⚅
-
-// libjpeg dma2d
-
-// APP 调试的问题
 
 #include <span>
 #include <functional>

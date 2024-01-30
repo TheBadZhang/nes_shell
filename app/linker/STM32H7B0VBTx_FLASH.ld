@@ -74,6 +74,18 @@ EX_FLASH (rx)     : ORIGIN = 0x90000000, LENGTH = 8192K
 /* Define output sections */
 SECTIONS
 {
+
+  .dtcm :
+  {
+    . = ALIGN(4);
+    _sdtcm = .;        /* create a global symbol at ext_sram start */
+    *(.dtcm)
+    *(.dtcm*)
+    *(.ramcode)
+    *(.ramcode*)
+    . = ALIGN(4);
+    _edtcm = .;        /* define a global symbol at ext_sram end */
+  } >DTCMRAM AT> EX_FLASH
     /* external sram data, do not initialize at startup  */
   .dma_sram(NOLOAD) :
   {
