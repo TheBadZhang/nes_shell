@@ -74,7 +74,6 @@ EX_FLASH (rx)     : ORIGIN = 0x90000000, LENGTH = 8192K
 /* Define output sections */
 SECTIONS
 {
-
     /* external sram data, do not initialize at startup  */
   .dma_sram(NOLOAD) :
   {

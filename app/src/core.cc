@@ -26,6 +26,27 @@
 // 列表动画、滑动条、复选框（开关）（方形或者圆形样式）、滑动条、进度条、按钮
 // 多级菜单，列表
 
+// 1602模拟器
+
+// 感觉现在性能的瓶颈在读写flash上面，外部flash的速度实在是太慢，无法支撑这么高的主频
+// 写一个内存池管理，用于管理整个DTCMRAM的内容，把一些内容提前预读到内存池当中，这样可以提高读写速度
+// 静态的图片（flash中）甚至比动态的图片（ram中）还要更吃处理
+// 静态图片（48fps）动态图片（52fps）
+// APP选择器底部的弧形甚至会产生10fps的波动
+
+// oled点亮非常不稳定，试着重新实现一个驱动，怀疑是u8g2的锅
+// 这个问题解决了一下，发现是设置绘制区域离初始化完成太近了
+// 隔一段时间设置就可以稳定点亮了
+
+// 试着把pic数组移动到dtcm里面，看看能否提升一定的速度（失败，甚至无法点亮屏幕了）
+
+// 使用xmake构建dsp库生成指定版本的lib文件（优化编译速度）
+
+// 但是项目书里面提到了使用到了psram和nand flash，要用的话引脚绝对不够用了
+// 目前感觉ram还是比较够用的
+
+// ⚀⚁⚂⚃⚄⚅
+
 // libjpeg dma2d
 
 // APP 调试的问题
@@ -343,7 +364,8 @@ char base64_in[] {"Hello World!"};
 uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
 int base64_out_len;
 
-
+// uint8_t __attribute__((section (".dtcm"))) screen_buffer[128*128/2];
+// uint8_t __attribute__((section (".dtcm"))) screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
 uint8_t screen_buffer[128*128/2];
 uint8_t screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
 tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
@@ -412,6 +434,51 @@ public:
 };
 }
 tbz::动态蜘蛛网 spider_web;
+
+#include "spin_dice.hpp"
+tbz::SPIN_DICE dice;
+
+#define USE_HORIZONTAL 0
+
+void ssd1327_init(void) {
+
+	clr(M_RST);
+	// delay_ms(200);
+	HAL_Delay(200);
+	set(M_RST);
+
+	screen_writeCommand(0xae);//Set display off
+	screen_writeCommand(0xa0);//Set re-map
+	if(USE_HORIZONTAL){screen_writeCommand(0x66);}
+	else{screen_writeCommand(0x55);}
+	screen_writeCommand(0xa1);//Set display start line
+	screen_writeCommand(0x00);
+	screen_writeCommand(0xa2);//Set display offset
+	screen_writeCommand(0x00);
+	screen_writeCommand(0xa4);//Normal Display
+	screen_writeCommand(0xa8);//Set multiplex ratio
+	screen_writeCommand(0x7f);
+	screen_writeCommand(0xab);//Function Selection A
+	screen_writeCommand(0x01);//Enable internal VDD regulator
+	screen_writeCommand(0x81);//Set contrast
+	screen_writeCommand(0x77);
+	screen_writeCommand(0xb1);//Set Phase Length
+	screen_writeCommand(0x31);
+	screen_writeCommand(0xb3);//Set Front Clock Divider /Oscillator Frequency
+	screen_writeCommand(0xb1);
+	screen_writeCommand(0xb5);//
+	screen_writeCommand(0x03);//0X03 enable
+	screen_writeCommand(0xb6);//Set Second pre-charge Period
+	screen_writeCommand(0x0d);
+	screen_writeCommand(0xbc);//Set Pre-charge voltage
+	screen_writeCommand(0x07);
+	screen_writeCommand(0xbe);//Set VCOMH
+	screen_writeCommand(0x07);
+	screen_writeCommand(0xd5);//Function Selection B
+	screen_writeCommand(0x02);//Enable second pre-charge
+
+	screen_writeCommand(0xaf);//Display on
+}
 void oled_function(void* argument) {
 
 	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
@@ -419,7 +486,6 @@ void oled_function(void* argument) {
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
 	u8g2.begin();
-	ssd1327SetPosition(0, 0, 128, 128);
 
 	// game_hanoi hanoi(&u8g2);
 	qrcode.set_U8G2(&u8g2);
@@ -431,6 +497,8 @@ void oled_function(void* argument) {
 	sw.set_U8G2(&u8g2);
 	rwf.set_U8G2(&u8g2);
 	mag.set_U8G2(&u8g2);
+	dice.setPic(&screen_pic);
+	dice.setup();
 	mag.random_to_next();
 	sound_wave.setPic(&screen_pic).setup();
 	spider_web.setPic(&screen_pic).setup();
@@ -442,6 +510,7 @@ void oled_function(void* argument) {
 	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 	base64_out[base64_out_len] = '\0';
 
+	ssd1327SetPosition(0, 0, 128, 128);
 
 	while (true) {
 
@@ -642,6 +711,9 @@ void oled_function(void* argument) {
 						screen_pic.drawXBMP(64, 0, 64, 64, tsetLava+2);
 						screen_pic.drawXBMP(0, 64, 64, 64, tsetSand+2);
 						screen_pic.drawXBMP(64, 64, 64, 64, tsetTower+2);
+					} break;
+					case APP_ENUM::TETRIS_GAME: {
+						dice.draw();
 					} break;
 					default: {
 						u8g2.clearBuffer();
