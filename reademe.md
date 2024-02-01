@@ -1,0 +1,6 @@
+# STM32H7B0VBT6 NES GAME SHELL
+
+基于 STM32H7B0VBT6 设计的 NES 掌上游戏机
+
+包含 ESP8684 组成的 wifi 蓝牙 扩展
+STM32G030G8U6 的可编程输入控制
