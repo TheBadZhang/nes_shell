@@ -52,3 +52,8 @@ https://github.com/miloyip/line/tree/master
 libjpeg dma2d
 
 APP 调试的问题
+
+
+如果使用ospi的flash大概率没有办法直接使用openocd烧录程序了
+要么在bootloader里面实现一个简易的，也许是可以通过usb进行烧录的程序
+要么就是利用串口，通过bootloader烧写外部的hyper flash，这个倒是还得额外定制一个软件才行

@@ -71,7 +71,7 @@ RTC_DateTypeDef sDate;
 // void my_print (const std::string& str) {
 // 	HAL_UART_Transmit(&huart4, (uint8_t*)str.c_str(), str.length(), 1000);
 // }
-#define my_printf(buf_, fmt_, x_...) \
+#define my_printf(buf_, fmt_, x_...)    \
 	int len_ = sprintf(buf_, fmt_, x_); \
 	HAL_UART_Transmit(&huart4, (uint8_t*)buf_, len_, 1000);
 
@@ -175,16 +175,8 @@ extern "C" void led0_task(void* argument) {
 		fps_count0 = 0;
 		if (luaL_dostring(L, "flip()") != LUA_OK) {
 			char* err = (char*)lua_tostring(L, -1);
+			my_printf(buf, "lua error:%s\n", err);
 		}
-		// int retlen = sprintf(buf, "HELLO WORLD");
-		// HAL_UART_Transmit(&huart4, (uint8_t*)buf, retlen, 1000);
-		// std::string str_r = tfm::format("%s", "Hello World!");
-		// std::string buf2;
-		// sprintf(buf, "HELLO WORLD");
-		// HAL_UART_Transmit(&huart4, (uint8_t*)buf2.c_str(), buf2.size(), 1000);
-		// HAL_UART_Transmit(&huart4, (uint8_t*)"HELLO WORLD", 12, 1000);
-		// my_print(fmt::format("The answer is {}.", 42));
-		// uart_print("HELLO WORLD");
 		my_printf(buf, "fps:%d\n", fps_count);
 		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
@@ -401,7 +393,8 @@ void ssd1327_init(void) {
 	screen_writeCommand(0xae);//Set display off
 	screen_writeCommand(0xa0);//Set re-map
 	if(USE_HORIZONTAL){screen_writeCommand(0x66);}
-	else{screen_writeCommand(0x55);}
+	else{screen_writeCommand(0x51);}
+	// 这一套命令真的好奇怪（
 	screen_writeCommand(0xa1);//Set display start line
 	screen_writeCommand(0x00);
 	screen_writeCommand(0xa2);//Set display offset
@@ -411,22 +404,23 @@ void ssd1327_init(void) {
 	screen_writeCommand(0x7f);
 	screen_writeCommand(0xab);//Function Selection A
 	screen_writeCommand(0x01);//Enable internal VDD regulator
-	screen_writeCommand(0x81);//Set contrast
-	screen_writeCommand(0x77);
+	screen_writeCommand(0x81); // 设置对比度，值(0~127)
+	screen_writeCommand(0x77); // 值不宜过大，否则，看不到亮度较低的颜色
 	screen_writeCommand(0xb1);//Set Phase Length
-	screen_writeCommand(0x31);
+	screen_writeCommand(0x51);
 	screen_writeCommand(0xb3);//Set Front Clock Divider /Oscillator Frequency
-	screen_writeCommand(0xb1);
-	screen_writeCommand(0xb5);//
+	screen_writeCommand(0x01);
+	// b1 还是 b3 对OLED啸叫产生了很明显的影响
+	screen_writeCommand(0xb1);//
 	screen_writeCommand(0x03);//0X03 enable
 	screen_writeCommand(0xb6);//Set Second pre-charge Period
-	screen_writeCommand(0x0d);
+	screen_writeCommand(0x01);
 	screen_writeCommand(0xbc);//Set Pre-charge voltage
 	screen_writeCommand(0x07);
 	screen_writeCommand(0xbe);//Set VCOMH
 	screen_writeCommand(0x07);
 	screen_writeCommand(0xd5);//Function Selection B
-	screen_writeCommand(0x02);//Enable second pre-charge
+	screen_writeCommand(0x62);//Enable second pre-charge
 
 	screen_writeCommand(0xaf);//Display on
 }
@@ -436,7 +430,7 @@ void oled_function(void* argument) {
 
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
-	u8g2.begin();
+	// u8g2.begin();
 
 	// game_hanoi hanoi(&u8g2);
 	qrcode.set_U8G2(&u8g2);
@@ -457,14 +451,14 @@ void oled_function(void* argument) {
 	app_selector.set_U8G2(&u8g2);
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
-
+	ssd1327_init();
 	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 	base64_out[base64_out_len] = '\0';
 
 	ssd1327SetPosition(0, 0, 128, 128);
 
 	while (true) {
-
+		flip(LED);
 		// 最高层级的弹窗
 		if (key_pressed_func(4)) {
 			switch(now_scene) {
@@ -699,7 +693,7 @@ void oled_function(void* argument) {
 
 
 		// screen_pic.drawBox(30, 30, 100, 100);
-		screen_pic.setColor(0x1);
+		screen_pic.setColor(0x3);
 		ani1.draw2(screen_pic);
 		ani2.draw2(screen_pic);
 		// screen_pic.setColor(0xa);
