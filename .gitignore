@@ -1,7 +1,10 @@
 
 refer/**
 
-hardware/nes_shell-backups/**
+hardware/nes_shell/nes_shell-backups/**
+hardware/nes_shell_2/nes_shell-backups/**
+hardware/nes_shell/fp-info-cache
+hardware/nes_shell_2/fp-info-cache
 
 **autosave**
 **auto_save**
