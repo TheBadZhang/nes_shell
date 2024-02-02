@@ -290,30 +290,26 @@ extern const uint8_t tsetTower[];
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
 tbz::SPRITE_ANIMATION<10> ani2(snow_animation_pic+72, 54, 8, 8, 8, 128, 128, 6);
-// tbz::SPRITE_ANIMATION<1> fireworks(fireworks_pic+2, fireworks_pic[0], fireworks_pic[1], 40, 40, 40, 40, 8);
 
 tbz::game::hanoi hanoi;
 tbz::round_watch_face rwf;
 tbz::SquareWatch sw;
 tbz::MODERN_ART_GENERATOR mag;
 tbz::game::SNAKE snake;
-tbz::QRCode qrcode;
+tbz::QRCode<3> qrcode;
 tbz::APP_SELECTOR app_selector;
 tbz::SOUND_WAVE sound_wave;
 
-
-#include "base64.h"
+#include "base64.hpp"
 char base64_in[] {"Hello World!"};
-uint8_t base64_out[BASE64_ENCODE_OUT_SIZE(sizeof(base64_in))+4];
-int base64_out_len;
+uint8_t base64_out[tbz::base64::encode_out_size(sizeof(base64_in))];
 
 // uint8_t __attribute__((section (".dtcm"))) screen_buffer[128*128/2];
 // uint8_t __attribute__((section (".dtcm"))) screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
 uint8_t screen_buffer[128*128/2];
 uint8_t screen_buffer2[128*128/2+2] = { 0x7f, 0x7f };
 tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
-	pic.mode = tbz::PIC::MODE::BIT4;
-	pic.setColor(0x01);
+	pic.setMode(tbz::PIC::MODE::BIT4).setColor(0x01);
 });
 
 namespace tbz{
@@ -426,15 +422,10 @@ void ssd1327_init(void) {
 }
 void oled_function(void* argument) {
 
-	// __HAL_DMA_DISABLE_IT(&hdma_spi6_tx, DMA_IT_HT);  // 关闭DMA hite
-
+	// u8g2 在这里只用于绘制图形，屏幕的初始化与显示由独立的驱动实现
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
-	// U8G2_SSD1607_200x200_F_4W_HW_SPI u8g2(U8G2_R0);
-	// u8g2.begin();
 
-	// game_hanoi hanoi(&u8g2);
-	qrcode.set_U8G2(&u8g2);
-	qrcode.setContent("Hello World!");
+	qrcode.setPIC(&screen_pic).setContent("Hello World!");
 	hanoi.set_U8G2(&u8g2);
 	snake.set_U8G2(&u8g2);
 	ani1.set_U8G2(&u8g2);
@@ -442,18 +433,18 @@ void oled_function(void* argument) {
 	sw.set_U8G2(&u8g2);
 	rwf.set_U8G2(&u8g2);
 	mag.set_U8G2(&u8g2);
-	dice.setPic(&screen_pic);
-	dice.setup();
 	mag.random_to_next();
+	dice.setPic(&screen_pic).setup();
 	sound_wave.setPic(&screen_pic).setup();
 	spider_web.setPic(&screen_pic).setup();
 	list_selector.set_U8G2(&u8g2);
 	app_selector.set_U8G2(&u8g2);
+	app_selector.setPIC(&screen_pic);
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
 	ssd1327_init();
-	base64_out_len = base64_encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
-	base64_out[base64_out_len] = '\0';
+	tbz::base64::encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
+
 
 	ssd1327SetPosition(0, 0, 128, 128);
 
@@ -539,8 +530,6 @@ void oled_function(void* argument) {
 					} break;
 					case APP_ENUM::qrcode_test: {
 						qrcode.draw();
-						u8g2.setFont(u8g2_font_6x10_tf);
-						u8g2.drawStr(0, 10, (const char*)base64_out);
 					} break;
 					case APP_ENUM::animation1: {
 						alert_font = u8g2_font_wqy16_t_gb2312;
@@ -623,6 +612,8 @@ void oled_function(void* argument) {
 						u8g2.drawStr(0, 20, buf);
 						sprintf (buf, "hash:%x", hash_fn("hello world!"));
 						u8g2.drawStr(0, 110, buf);
+						u8g2.setFont(u8g2_font_6x10_tf);
+						u8g2.drawStr(0, 120, (const char*)base64_out);
 
 					} break;
 					case APP_ENUM::ui_test2: {
@@ -700,25 +691,9 @@ void oled_function(void* argument) {
 		spider_web.draw();
 
 
-		constexpr uint8_t trans_white = 0xf;
-		constexpr uint8_t trans_black = 0x0;
-		auto ptr = u8g2.getBufferPtr();
-		for (int y = 0; y < 128/8; y++) {     // 8行一组
-			for (int x = 0; x < 128/2; x++) { // 2个像素一个字节
-				// u8g2 像素先垂直后水平扫描
-				auto pixe1 = *ptr++;
-				auto pixe2 = *ptr++;
-				for (int k = 0; k < 8; k++) {
-					auto ppixe1 = (pixe1 >> k) & 0x01 ? trans_white : trans_black;
-					auto ppixe2 = (pixe2 >> k) & 0x01 ? trans_white : trans_black;
-					screen_buffer[(y*8+k)*64+x] = (ppixe1 << 4) | ppixe2;
-				}
-			}
-		}
-		for (int i = 0; i < 128*128/2; i++) {
-			screen_buffer[i] |= screen_buffer2[i+2];
-		}
-		screenWrite(screen_buffer, 128*64);
+		tbz::trans_u8g2buffer_to_4bitxbmp(u8g2.getBufferPtr(), screen_buffer, 128, 128);
+		screen_pic.mixBuffer(screen_buffer);
+		screenWrite(screen_buffer, 128*128/2);
 		vTaskDelay(10);
 	}
 }
