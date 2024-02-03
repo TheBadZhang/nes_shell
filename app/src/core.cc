@@ -177,7 +177,7 @@ extern "C" void led0_task(void* argument) {
 			char* err = (char*)lua_tostring(L, -1);
 			my_printf(buf, "lua error:%s\n", err);
 		}
-		my_printf(buf, "fps:%d\n", fps_count);
+		// my_printf(buf, "fps:%d\n", fps_count);
 		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
@@ -420,6 +420,11 @@ void ssd1327_init(void) {
 
 	screen_writeCommand(0xaf);//Display on
 }
+
+#include "streamer.hpp"
+
+tbz::STREAMER streamer;
+
 void oled_function(void* argument) {
 
 	// u8g2 在这里只用于绘制图形，屏幕的初始化与显示由独立的驱动实现
@@ -437,6 +442,7 @@ void oled_function(void* argument) {
 	dice.setPic(&screen_pic).setup();
 	sound_wave.setPic(&screen_pic).setup();
 	spider_web.setPic(&screen_pic).setup();
+	streamer.setPic(&screen_pic).setup();
 	list_selector.set_U8G2(&u8g2);
 	app_selector.set_U8G2(&u8g2);
 	app_selector.setPIC(&screen_pic);
@@ -445,11 +451,9 @@ void oled_function(void* argument) {
 	ssd1327_init();
 	tbz::base64::encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 
-
 	ssd1327SetPosition(0, 0, 128, 128);
 
 	while (true) {
-		flip(LED);
 		// 最高层级的弹窗
 		if (key_pressed_func(4)) {
 			switch(now_scene) {
@@ -651,6 +655,9 @@ void oled_function(void* argument) {
 					case APP_ENUM::TETRIS_GAME: {
 						dice.draw();
 					} break;
+					case APP_ENUM::streamer: {
+						streamer.draw();
+					} break;
 					default: {
 						u8g2.clearBuffer();
 						u8g2.setFont(u8g2_font_wqy16_t_gb2312);
@@ -722,5 +729,19 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 			}
 			default: {}
 		}
+	}
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
+
+	if (huart -> Instance == UART4) {
+		// streamer.switchBuffer();
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, streamer.getRxBuffer(), 128*128);
+		// switch (now_app) {
+		// 	case APP_ENUM::streamer: {
+		// 		memcpy(screen_pic.getBasePic2()+2, streamer.getPicBuffer(), 128*128/2);
+		// 	}
+		// }
+		// HAL_UART_Receive_DMA(&huart4, streamer.getStreamBuffer(), 128*128/8);
 	}
 }
