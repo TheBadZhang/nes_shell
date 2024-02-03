@@ -27,3 +27,6 @@ app/Hanoi/res/hanoi_res_oled_128128.aseprite
 # eide template
 *.ept
 *.eide-template
+.mxproject
+
+codebase

@@ -349,7 +349,8 @@
         "app/Hanoi/res",
         "codebase/animation/soudwave.cc",
         "codebase/app/animation/soudwave.cc",
-        "codebase/lib/oledlib"
+        "codebase/lib/oledlib",
+        "codebase/elib/device/w25q"
       ],
       "toolchain": "GCC",
       "compileConfig": {
