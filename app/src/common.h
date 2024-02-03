@@ -1,6 +1,7 @@
 #ifndef __TBZ_COMMON_H__
 #define __TBZ_COMMON_H__
 #include "main.h"
+#include "ff.h"
 #include "cmsis_os.h"
 
 extern ADC_HandleTypeDef hadc1;

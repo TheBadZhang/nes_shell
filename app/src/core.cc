@@ -286,6 +286,9 @@ extern const uint8_t tsetBones[];
 extern const uint8_t tsetLava[];
 extern const uint8_t tsetSand[];
 extern const uint8_t tsetTower[];
+extern const uint8_t normal_keys[];
+
+// tbz::PIC normal_keys(pic_normal_keys);
 
 extern const uint8_t snow_animation_pic[];
 tbz::SPRITE_ANIMATION<10> ani1(snow_animation_pic, 72, 8, 8, 8, 128, 128, 9);
@@ -425,10 +428,104 @@ void ssd1327_init(void) {
 
 tbz::STREAMER streamer;
 
+extern FATFS SDFatFS;
+extern char SDPath[];
+extern FIL SDFile;
+
+void sd_card_opration(void) {
+	uint32_t byteswritten;                /* File write counts */
+	uint32_t bytesread;                   /* File read counts */
+	uint8_t wtext[] = "This is STM32 working with FatFs"; /* File write buffer */
+	uint8_t rtext[100];                   /* File read buffers */
+	char filename[] = "STM32cube.txt";
+	char SensorBuff[100];
+	// printf("********* STM32CubeMX FatFs Example *********\r\n\r\n");
+	if(f_mount(&SDFatFS,SDPath,1) == FR_OK){
+		// printf("f_mount sucess!!! \r\n");
+		if(f_open(&SDFile,filename,FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
+			// printf("f_open file sucess!!! \r\n");
+			if(f_write(&SDFile,wtext,sizeof(wtext),(UINT*)&byteswritten) == FR_OK){
+				// printf("f_write file sucess!!! \r\n");
+				// printf("f_write Data : %s\r\n",wtext);
+				// if(f_close(&SDFile) == FR_OK)
+					// printf("f_close sucess!!! \r\n");
+				// else
+					// printf("f_close error : %d\r\n",retSD);
+			}
+			// else
+				// printf("f_write file error\r\n");
+		}
+		// else
+			// printf("f_open file error\r\n");
+	}
+	// else
+		// printf("f_mount error : %d \r\n",retSD);
+
+	auto retSD = f_open(&SDFile, filename, FA_READ);
+	// if(retSD)
+	// 	printf("f_open file error : %d\r\n",retSD);
+	// else
+	// 	printf("f_open file sucess!!! \r\n");
+
+	retSD = f_read(&SDFile, rtext, sizeof(rtext), (UINT*)&bytesread);
+	// if(retSD)
+	// 	printf("f_read error!!! %d\r\n",retSD);
+	// else{
+	// 	printf("f_read sucess!!! \r\n");
+	// 	printf("f_read Data : %s\r\n",rtext);
+	// }
+
+	retSD = f_close(&SDFile);
+	// if(retSD)
+	// 	printf("f_close error!!! %d\r\n",retSD);
+	// else
+	// 	printf("f_close sucess!!! \r\n");
+
+	// if(bytesread == byteswritten)
+	// 	printf("FatFs is working well!!!\r\n");
+
+	if(f_open(&SDFile,(const char*)"Sensor.csv",FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
+		// printf("Sensor.csv was opened/created!!!\r\n");
+		sprintf(SensorBuff, "Item,Temp,Humi,Light\r\n");
+		f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
+
+		for(int i = 0; i < 10; i++){
+			sprintf(SensorBuff, "%d,%d,%d,%d\r\n",i + 1, i + 20, i + 30, i + 40);
+			f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
+			f_sync(&SDFile);
+		}
+		f_close(&SDFile);
+	}
+}
+
+int show_keyboard(tbz::PIC& pic) {
+	int pressed_key_count = 0;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 5; j++) {
+			int index_of_res = 2+(i*5+j)*2*16;
+			if (key[i*5+j]) {
+				if (pressed_key_count < 6)
+					keyboard[2+pressed_key_count] = 4+5*i+j;
+				pressed_key_count ++;
+
+				int offset = (16/8)*16*32;
+				pic.draw1BitXBMP2x(10+22*j, 30+22*i, 16, 16, normal_keys+index_of_res+offset);
+			} else {
+				keyboard[2+pressed_key_count] = 0;
+				pic.draw1BitXBMP2x(10+22*j, 30+22*i, 16, 16, normal_keys+index_of_res);
+			}
+		}
+	}
+
+	return pressed_key_count;
+}
+
 void oled_function(void* argument) {
 
 	// u8g2 在这里只用于绘制图形，屏幕的初始化与显示由独立的驱动实现
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
+
+	// sd_card_opration();
 
 	qrcode.setPIC(&screen_pic).setContent("Hello World!");
 	hanoi.set_U8G2(&u8g2);
@@ -595,22 +692,8 @@ void oled_function(void* argument) {
 						u8g2.setFont(u8g2_font_6x10_tf);
 						// u8g2.setContrast(25);
 						u8g2.drawStr(0, 10, "Hello World!");
-						int pressed_key_count = 0;
-						for (int i = 0; i < 3; i++) {
-							for (int j = 0; j < 5; j++) {
-								sprintf(buf, "%c", 'A'+i*5+j);
-								u8g2.drawStr(17+22*j, 43+22*i, buf);
-								if (key[i*5+j]) {
-									if (pressed_key_count < 6)
-										keyboard[2+pressed_key_count] = 4+5*i+j;
-									pressed_key_count ++;
-									u8g2.drawBox(11+22*j, 31+22*i, 19, 19);
-								} else {
-									keyboard[2+pressed_key_count] = 0;
-									u8g2.drawFrame(10+22*j, 30+22*i, 20, 20);
-								}
-							}
-						}
+
+						auto pressed_key_count = show_keyboard(screen_pic);
 
 						sprintf (buf, "pressed:%d", pressed_key_count);
 						u8g2.drawStr(0, 20, buf);
