@@ -355,7 +355,13 @@
         "codebase/lib/nes项目",
         "codebase/lib/屏幕驱动库",
         "codebase/lib/缓动库",
-        "codebase/lib/lisp-like"
+        "codebase/lib/lisp-like",
+        "codebase/lib/lodepng",
+        "codebase/lib/SFUD",
+        "codebase/lib/letter-shell",
+        "codebase/lib/tween",
+        "codebase/lib/GxEPD2",
+        "codebase/lib/libutf8"
       ],
       "toolchain": "GCC",
       "compileConfig": {
