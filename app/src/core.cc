@@ -353,132 +353,24 @@ void bit4_to_bit16(uint8_t* src, uint8_t* dst, int size) {
 void bit4_to_bit16(uint8_t* src, uint8_t* dst, int src_w, int src_h, int dst_w, int dst_h) {
 
 	int src_blen = src_w/2;
-	int dst_blen = dst_w*2;
+	// int dst_blen = dst_w*2;
 
 	for (int i = 0; i < src_h; i++) {
 		for (int j = 0; j < src_blen; j++) {
-			// int ptr_offset = i*dst_blen+j*2*2;   // 行、列
-			// dst[ptr_offset] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] >> 4));
-			// dst[ptr_offset+1] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] >> 4)+1);
-			// dst[ptr_offset+2] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] & 0x0f >> 4));
-			// dst[ptr_offset+3] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] & 0x0f >> 4)+1);
 			uint16_t* dst_ptr = ((uint16_t*)(dst))+i*dst_w+j*2;
 			*dst_ptr = bit4_to_bit16_convert_color_set[src[i*src_blen+j] >> 4];
 			*(dst_ptr+1) = bit4_to_bit16_convert_color_set[src[i*src_blen+j] & 0x0f];
 		}
 	}
 }
-namespace tbz{
-struct POINT {
-	float x, y;
-	float dir_x, dir_y;
-};
-class 动态蜘蛛网 {
-private:
-	PIC* pic;
-	std::array<POINT, 10> points;
-	// POINT points[10];
-	struct {
-		int point_size = 2;
-		int line_distance = 20;
-	} config;
-	void update(void) {
-		for (int i = 0; i < points.size(); i++) {
-			points[i].x += points[i].dir_x;
-			points[i].y += points[i].dir_y;
-			if (points[i].x < config.point_size || points[i].x > 128-config.point_size) {
-				points[i].dir_x = -points[i].dir_x;
-			}
-			if (points[i].y < config.point_size || points[i].y > 128-config.point_size) {
-				points[i].dir_y = -points[i].dir_y;
-			}
-		}
 
-	}
-public:
-	动态蜘蛛网(void) {}
-	动态蜘蛛网& setup(void) {
-		for (int i = 0; i < points.size(); i++) {
-			points[i].x = rand()%128;
-			points[i].y = rand()%128;
-			float speed = 0.5;
-			float angle = rand()%36000/100.0;
-			points[i].dir_x = speed*cos(radians(angle));
-			points[i].dir_y = speed*sin(radians(angle));
-		}
-		return *this;
-	}
-	动态蜘蛛网& setPic(PIC* p) {
-		pic = p;
-		return *this;
-	}
-	动态蜘蛛网& draw(void) {
-		pic -> setColor(0x0a);
-		update();
-		for (int i = 0; i < points.size(); i++) {
-			pic -> fillCircle(points[i].x, points[i].y, config.point_size);
-			for (int j = 0; j < points.size(); j++) {
-				if (i != j)
-				if (std::hypot(points[i].x-points[j].x, points[i].y-points[j].y) < config.line_distance) {
-					pic -> drawLine(points[i].x, points[i].y, points[j].x, points[j].y);
-				}
-			}
-		}
-		return *this;
-	}
-};
-}
-tbz::动态蜘蛛网 spider_web;
+#include "moving_spider.hpp"
+tbz::moving_spider spider_web;
 
 #include "spin_dice.hpp"
 tbz::SPIN_DICE dice;
 
-#define USE_HORIZONTAL 0
-
-void ssd1327_init(void) {
-
-	clr(M_RST);
-	// delay_ms(200);
-	HAL_Delay(200);
-	set(M_RST);
-
-	screen_writeCommand(0xae);//Set display off
-	screen_writeCommand(0xa0);//Set re-map
-	if(USE_HORIZONTAL){screen_writeCommand(0x66);}
-	else{screen_writeCommand(0x51);}
-	// 这一套命令真的好奇怪（
-	screen_writeCommand(0xa1);//Set display start line
-	screen_writeCommand(0x00);
-	screen_writeCommand(0xa2);//Set display offset
-	screen_writeCommand(0x00);
-	screen_writeCommand(0xa4);//Normal Display
-	screen_writeCommand(0xa8);//Set multiplex ratio
-	screen_writeCommand(0x7f);
-	screen_writeCommand(0xab);//Function Selection A
-	screen_writeCommand(0x01);//Enable internal VDD regulator
-	screen_writeCommand(0x81); // 设置对比度，值(0~127)
-	screen_writeCommand(0x77); // 值不宜过大，否则，看不到亮度较低的颜色
-	screen_writeCommand(0xb1);//Set Phase Length
-	screen_writeCommand(0x51);
-	screen_writeCommand(0xb3);//Set Front Clock Divider /Oscillator Frequency
-	screen_writeCommand(0x01);
-	// b1 还是 b3 对OLED啸叫产生了很明显的影响
-	screen_writeCommand(0xb1);//
-	screen_writeCommand(0x03);//0X03 enable
-	screen_writeCommand(0xb6);//Set Second pre-charge Period
-	screen_writeCommand(0x01);
-	screen_writeCommand(0xbc);//Set Pre-charge voltage
-	screen_writeCommand(0x07);
-	screen_writeCommand(0xbe);//Set VCOMH
-	screen_writeCommand(0x07);
-	screen_writeCommand(0xd5);//Function Selection B
-	screen_writeCommand(0x62);//Enable second pre-charge
-
-	screen_writeCommand(0xaf);//Display on
-}
-
 #include "streamer.hpp"
-
 tbz::STREAMER streamer;
 
 extern FATFS SDFatFS;
@@ -575,183 +467,12 @@ int show_keyboard(tbz::PIC& pic) {
 
 
 
-void LCD_WR_DATA8(u8 dat) {
-	screen_writeData(dat);
-}
-
-void LCD_WR_DATA(u16 dat) {
-	screen_writeDatas((uint8_t*)&dat, 2);
-}
-
-void LCD_WR_REG(u8 dat) {
-	screen_writeCommand(dat);
-}
-
-/******************************************************************************
-      函数说明：设置起始和结束地址
-      入口数据：x1,x2 设置列的起始和结束地址
-                y1,y2 设置行的起始和结束地址
-      返回值：  无
-******************************************************************************/
-void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2) {
-	x2--; y2--;
-	if(USE_HORIZONTAL==0)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1);
-		LCD_WR_DATA(x2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1);
-		LCD_WR_DATA(y2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(USE_HORIZONTAL==1)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1);
-		LCD_WR_DATA(x2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1);
-		LCD_WR_DATA(y2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(USE_HORIZONTAL==2)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1);
-		LCD_WR_DATA(x2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1);
-		LCD_WR_DATA(y2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1);
-		LCD_WR_DATA(x2);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1);
-		LCD_WR_DATA(y2);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-}
-
-void LCD_Init(void) {
-
-	// set(M_RST);
-	// vTaskDelay(120);
-	// clr(M_RST);
+#include "st7789.hpp"
+tbz::device::screen::st7789 st7789;
 
 
-
-	//************* Start Initial Sequence **********//
-	LCD_WR_REG(0x11); //Sleep out
-	vTaskDelay(120);
-	//************* Start Initial Sequence **********//
-	LCD_WR_REG(0x36);
-	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x00);
-	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC0);
-	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x70);
-	else LCD_WR_DATA8(0xA0);
-
-	LCD_WR_REG(0x3A);
-	LCD_WR_DATA8(0x05);
-
-	LCD_WR_REG(0xB2);
-	LCD_WR_DATA8(0x0C);
-	LCD_WR_DATA8(0x0C);
-	LCD_WR_DATA8(0x00);
-	LCD_WR_DATA8(0x33);
-	LCD_WR_DATA8(0x33);
-
-	LCD_WR_REG(0xB7);
-	LCD_WR_DATA8(0x35);
-
-	LCD_WR_REG(0xBB);
-	LCD_WR_DATA8(0x32); //Vcom=1.35V
-
-	LCD_WR_REG(0xC2);
-	LCD_WR_DATA8(0x01);
-
-	LCD_WR_REG(0xC3);
-	LCD_WR_DATA8(0x15); //GVDD=4.8V  颜色深度
-
-	LCD_WR_REG(0xC4);
-	LCD_WR_DATA8(0x20); //VDV, 0x20:0v
-
-	LCD_WR_REG(0xC6);
-	LCD_WR_DATA8(0x0F); //0x0F:60Hz
-
-	LCD_WR_REG(0xD0);
-	LCD_WR_DATA8(0xA4);
-	LCD_WR_DATA8(0xA1);
-
-	LCD_WR_REG(0xE0);
-	LCD_WR_DATA8(0xD0);
-	LCD_WR_DATA8(0x08);
-	LCD_WR_DATA8(0x0E);
-	LCD_WR_DATA8(0x09);
-	LCD_WR_DATA8(0x09);
-	LCD_WR_DATA8(0x05);
-	LCD_WR_DATA8(0x31);
-	LCD_WR_DATA8(0x33);
-	LCD_WR_DATA8(0x48);
-	LCD_WR_DATA8(0x17);
-	LCD_WR_DATA8(0x14);
-	LCD_WR_DATA8(0x15);
-	LCD_WR_DATA8(0x31);
-	LCD_WR_DATA8(0x34);
-
-	LCD_WR_REG(0xE1);
-	LCD_WR_DATA8(0xD0);
-	LCD_WR_DATA8(0x08);
-	LCD_WR_DATA8(0x0E);
-	LCD_WR_DATA8(0x09);
-	LCD_WR_DATA8(0x09);
-	LCD_WR_DATA8(0x15);
-	LCD_WR_DATA8(0x31);
-	LCD_WR_DATA8(0x33);
-	LCD_WR_DATA8(0x48);
-	LCD_WR_DATA8(0x17);
-	LCD_WR_DATA8(0x14);
-	LCD_WR_DATA8(0x15);
-	LCD_WR_DATA8(0x31);
-	LCD_WR_DATA8(0x34);
-	LCD_WR_REG(0x21);
-
-	LCD_WR_REG(0x29);
-}
-
-
-
-void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color) {
-	u16 i,j;
-	LCD_Address_Set(xsta,ysta,xend-1,yend-1);
-	for(i=ysta;i<yend;i++) {
-		for(j=xsta;j<xend;j++) {
-			LCD_WR_DATA(color);
-		}
-	}
-}
-
-void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[]) {
-	u16 i,j;
-	u32 k=0;
-	LCD_Address_Set(x,y,x+length-1,y+width-1);
-	for(i=0;i<length;i++) {
-		for(j=0;j<width;j++) {
-			LCD_WR_DATA8(pic[k*2]);
-			LCD_WR_DATA8(pic[k*2+1]);
-			k++;
-		}
-	}
-}
-
-
-int screen_width = 240;
+int screen_width = 128;
 int screen_height = 128;
-int single_buffer_size = screen_width*screen_height;
 
 void oled_function(void* argument) {
 
@@ -784,11 +505,18 @@ void oled_function(void* argument) {
 	std::hash<const char*> hash_fn;
 	tbz::base64::encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 
-	LCD_Init();
-
-	// ssd1327_init();
-	// vTaskDelay(100);
-	// ssd1327SetPosition(0, 0, 128, 128);
+	st7789
+		.setup()
+		.setBuffer(scrren_buffer_16bit)
+		.setAddressWindow(0, 0, 240, 320)
+		// .fillScreen(0x0000)
+		// .fillScreen([]() -> u16 {
+		// 	return rand();
+		// })
+		.fillScreenf([](float x, float y) -> u16 {
+			return abs(sin(x*10)*cos(y*10))*0xffff;
+		})
+		.setAddressWindow2((240-128)/2, (320-128)/2, screen_width, screen_height);
 
 
 	while (true) {
@@ -803,6 +531,15 @@ void oled_function(void* argument) {
 					now_scene = next_scene;
 				}
 			}
+		}
+		if (key_pressed_func(3)) {
+			st7789.setDisplayOff().setAddressWindow();
+			// st7789.setTearingEffectOff();
+		}
+		if (key_pressed_func(13)) {
+			st7789.setDisplayOn().setAddressWindow();
+			// st7789.setInvOn();
+			// st7789.setTearingEffectOn();
 		}
 
 		// 退出 APP 的动画
@@ -999,54 +736,23 @@ void oled_function(void* argument) {
 			} break;
 		}
 
-		// u8g2.setFont(u8g2_font_6x10_tf);
-		// 	u8g2.drawStr(0, 30, err);
-		// sprintf(buf, "address:%X", rrrrr);
-		// u8g2.drawStr(0, 10, buf);
-		// sprintf(buf, "adc:%dmv", adc_value2[0]);
-		// u8g2.drawStr(0, 20, buf);
-		// sprintf(buf, "count:%d", adc_count);
-		// u8g2.drawStr(0, 30, buf);
-		// adc_count = 0;
-		// sprintf(buf, "address:%X", rrrrr+13);
-		// u8g2.drawStr(0, 40, buf);
-
 		fps_count0 ++;
 
 
-		// screen_pic.drawBox(30, 30, 100, 100);
 		screen_pic.setColor(0x3);
 		ani1.draw2(screen_pic);
 		ani2.draw2(screen_pic);
-		// screen_pic.setColor(0xa);
+
 		spider_web.draw();
 
 
 		tbz::trans_u8g2buffer_to_4bitxbmp(u8g2.getBufferPtr(), screen_buffer, 128, 128);
 		screen_pic.mixBuffer(screen_buffer);
-		// screenWrite(screen_buffer, 128*128/2);
 
-		// flip(LED);
+		bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128, 128, screen_width, screen_height);
+		st7789.sendBuffer();
 
-		LCD_Address_Set(0, 0, screen_width, screen_height);
-		// bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128*128/2);
-		bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128, 128, 240, 320);
-		screen_writeDatas(scrren_buffer_16bit, single_buffer_size);
-		screen_writeDatas(scrren_buffer_16bit+single_buffer_size, single_buffer_size);
-		// screen_writeDatas((uint8_t*)scrren_buffer_16bit, 57600);
-		// screen_writeDatas((uint8_t*)scrren_buffer_16bit+57600, 57600);
-		// for (int i = 0; i < 320; i++) {
-		// 	for (int j = 0; j < 120; j++) {
-		// 		auto pix = screen_buffer[i*64+j];
-		// 		uint16_t color1 = (pix>>4) & 0xff ? 0xffff : 0x0000;
-		// 		uint16_t color2 = pix & 0xff ? 0xffff : 0x0000;
-		// 		LCD_WR_DATA(color1);
-		// 		LCD_WR_DATA(color2);
-		// 	}
-		// }
-
-		// LCD_Fill(0, 0, 240, 240, rand());
-		vTaskDelay(10);
+		vTaskDelay(5);
 	}
 }
 

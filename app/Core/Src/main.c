@@ -334,7 +334,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.Usart16ClockSelection = RCC_USART16910CLKSOURCE_PLL2;
   PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL3;
   PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL3;
-  PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL2;
+  PeriphClkInitStruct.Spi6ClockSelection = RCC_SPI6CLKSOURCE_PLL3;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -865,7 +865,7 @@ static void MX_SPI6_Init(void)
   hspi6.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi6.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi6.Init.NSS = SPI_NSS_SOFT;
-  hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi6.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi6.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi6.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi6.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
