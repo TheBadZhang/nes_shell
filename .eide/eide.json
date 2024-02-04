@@ -350,7 +350,12 @@
         "codebase/animation/soudwave.cc",
         "codebase/app/animation/soudwave.cc",
         "codebase/lib/oledlib",
-        "codebase/elib/device/w25q"
+        "codebase/elib/device/w25q",
+        "codebase/lib/字处理",
+        "codebase/lib/nes项目",
+        "codebase/lib/屏幕驱动库",
+        "codebase/lib/缓动库",
+        "codebase/lib/lisp-like"
       ],
       "toolchain": "GCC",
       "compileConfig": {

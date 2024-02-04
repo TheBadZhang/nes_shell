@@ -315,6 +315,59 @@ tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
 	pic.setMode(tbz::PIC::MODE::BIT4).setColor(0x01);
 });
 
+uint8_t scrren_buffer_16bit[240*320*2];
+constexpr uint16_t bit16_rgb(uint8_t r, uint8_t g, uint8_t b) {
+	uint16_t c = ((r&0b11111000) << 11) | ((g&0b11111100) << 5) | (b&0b11111000);
+	return (c&0xff00) >> 8 | (c&0x00ff) << 8;
+}
+constexpr uint16_t bit16_gray(uint8_t gray) {
+	return bit16_rgb(gray, gray, gray);
+}
+
+// #define bit16_gray(gray) bit16_rgb(gray, gray, gray)
+
+// 因为大小端的问题，所以这个颜色的高低字节需要对调
+// 所以你会看到这个颜色和 colors.h 给出的颜色是不一样的
+uint16_t bit4_to_bit16_convert_color_set[16] {
+	0x0000,	0x0000,
+	0x4D6B,	0x4D6B,
+	0x1084,	0x1084,
+	0x55AD,	0x55AD,
+	0x18C6,	0x18C6,
+	0x9AD6,	0x9AD6,
+	0xFBDE,	0xFBDE,
+	0xFFFF,	0xFFFF
+	// bit16_gray(0x00), bit16_gray(0x11), bit16_gray(0x22), bit16_gray(0x33),
+	// bit16_gray(0x44), bit16_gray(0x55), bit16_gray(0x66), bit16_gray(0x77),
+	// bit16_gray(0x88), bit16_gray(0x99), bit16_gray(0xAA), bit16_gray(0xBB),
+	// bit16_gray(0xCC), bit16_gray(0xDD), bit16_gray(0xEE), bit16_gray(0xFF)
+};
+void bit4_to_bit16(uint8_t* src, uint8_t* dst, int size) {
+	for (int i = 0; i < size; i++) {
+		dst[i*2] = bit4_to_bit16_convert_color_set[src[i] >> 4];
+		dst[i*2+1] = bit4_to_bit16_convert_color_set[src[i] & 0x0f];
+	}
+}
+
+
+void bit4_to_bit16(uint8_t* src, uint8_t* dst, int src_w, int src_h, int dst_w, int dst_h) {
+
+	int src_blen = src_w/2;
+	int dst_blen = dst_w*2;
+
+	for (int i = 0; i < src_h; i++) {
+		for (int j = 0; j < src_blen; j++) {
+			// int ptr_offset = i*dst_blen+j*2*2;   // 行、列
+			// dst[ptr_offset] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] >> 4));
+			// dst[ptr_offset+1] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] >> 4)+1);
+			// dst[ptr_offset+2] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] & 0x0f >> 4));
+			// dst[ptr_offset+3] = *((uint8_t*)bit4_to_bit16_convert_color_set+(src[i*src_blen+j] & 0x0f >> 4)+1);
+			uint16_t* dst_ptr = ((uint16_t*)(dst))+i*dst_w+j*2;
+			*dst_ptr = bit4_to_bit16_convert_color_set[src[i*src_blen+j] >> 4];
+			*(dst_ptr+1) = bit4_to_bit16_convert_color_set[src[i*src_blen+j] & 0x0f];
+		}
+	}
+}
 namespace tbz{
 struct POINT {
 	float x, y;
@@ -520,12 +573,196 @@ int show_keyboard(tbz::PIC& pic) {
 	return pressed_key_count;
 }
 
+
+
+void LCD_WR_DATA8(u8 dat) {
+	screen_writeData(dat);
+}
+
+void LCD_WR_DATA(u16 dat) {
+	screen_writeDatas((uint8_t*)&dat, 2);
+}
+
+void LCD_WR_REG(u8 dat) {
+	screen_writeCommand(dat);
+}
+
+/******************************************************************************
+      函数说明：设置起始和结束地址
+      入口数据：x1,x2 设置列的起始和结束地址
+                y1,y2 设置行的起始和结束地址
+      返回值：  无
+******************************************************************************/
+void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2) {
+	x2--; y2--;
+	if(USE_HORIZONTAL==0)
+	{
+		LCD_WR_REG(0x2a);//列地址设置
+		LCD_WR_DATA(x1);
+		LCD_WR_DATA(x2);
+		LCD_WR_REG(0x2b);//行地址设置
+		LCD_WR_DATA(y1);
+		LCD_WR_DATA(y2);
+		LCD_WR_REG(0x2c);//储存器写
+	}
+	else if(USE_HORIZONTAL==1)
+	{
+		LCD_WR_REG(0x2a);//列地址设置
+		LCD_WR_DATA(x1);
+		LCD_WR_DATA(x2);
+		LCD_WR_REG(0x2b);//行地址设置
+		LCD_WR_DATA(y1);
+		LCD_WR_DATA(y2);
+		LCD_WR_REG(0x2c);//储存器写
+	}
+	else if(USE_HORIZONTAL==2)
+	{
+		LCD_WR_REG(0x2a);//列地址设置
+		LCD_WR_DATA(x1);
+		LCD_WR_DATA(x2);
+		LCD_WR_REG(0x2b);//行地址设置
+		LCD_WR_DATA(y1);
+		LCD_WR_DATA(y2);
+		LCD_WR_REG(0x2c);//储存器写
+	}
+	else
+	{
+		LCD_WR_REG(0x2a);//列地址设置
+		LCD_WR_DATA(x1);
+		LCD_WR_DATA(x2);
+		LCD_WR_REG(0x2b);//行地址设置
+		LCD_WR_DATA(y1);
+		LCD_WR_DATA(y2);
+		LCD_WR_REG(0x2c);//储存器写
+	}
+}
+
+void LCD_Init(void) {
+
+	// set(M_RST);
+	// vTaskDelay(120);
+	// clr(M_RST);
+
+
+
+	//************* Start Initial Sequence **********//
+	LCD_WR_REG(0x11); //Sleep out
+	vTaskDelay(120);
+	//************* Start Initial Sequence **********//
+	LCD_WR_REG(0x36);
+	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x00);
+	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC0);
+	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x70);
+	else LCD_WR_DATA8(0xA0);
+
+	LCD_WR_REG(0x3A);
+	LCD_WR_DATA8(0x05);
+
+	LCD_WR_REG(0xB2);
+	LCD_WR_DATA8(0x0C);
+	LCD_WR_DATA8(0x0C);
+	LCD_WR_DATA8(0x00);
+	LCD_WR_DATA8(0x33);
+	LCD_WR_DATA8(0x33);
+
+	LCD_WR_REG(0xB7);
+	LCD_WR_DATA8(0x35);
+
+	LCD_WR_REG(0xBB);
+	LCD_WR_DATA8(0x32); //Vcom=1.35V
+
+	LCD_WR_REG(0xC2);
+	LCD_WR_DATA8(0x01);
+
+	LCD_WR_REG(0xC3);
+	LCD_WR_DATA8(0x15); //GVDD=4.8V  颜色深度
+
+	LCD_WR_REG(0xC4);
+	LCD_WR_DATA8(0x20); //VDV, 0x20:0v
+
+	LCD_WR_REG(0xC6);
+	LCD_WR_DATA8(0x0F); //0x0F:60Hz
+
+	LCD_WR_REG(0xD0);
+	LCD_WR_DATA8(0xA4);
+	LCD_WR_DATA8(0xA1);
+
+	LCD_WR_REG(0xE0);
+	LCD_WR_DATA8(0xD0);
+	LCD_WR_DATA8(0x08);
+	LCD_WR_DATA8(0x0E);
+	LCD_WR_DATA8(0x09);
+	LCD_WR_DATA8(0x09);
+	LCD_WR_DATA8(0x05);
+	LCD_WR_DATA8(0x31);
+	LCD_WR_DATA8(0x33);
+	LCD_WR_DATA8(0x48);
+	LCD_WR_DATA8(0x17);
+	LCD_WR_DATA8(0x14);
+	LCD_WR_DATA8(0x15);
+	LCD_WR_DATA8(0x31);
+	LCD_WR_DATA8(0x34);
+
+	LCD_WR_REG(0xE1);
+	LCD_WR_DATA8(0xD0);
+	LCD_WR_DATA8(0x08);
+	LCD_WR_DATA8(0x0E);
+	LCD_WR_DATA8(0x09);
+	LCD_WR_DATA8(0x09);
+	LCD_WR_DATA8(0x15);
+	LCD_WR_DATA8(0x31);
+	LCD_WR_DATA8(0x33);
+	LCD_WR_DATA8(0x48);
+	LCD_WR_DATA8(0x17);
+	LCD_WR_DATA8(0x14);
+	LCD_WR_DATA8(0x15);
+	LCD_WR_DATA8(0x31);
+	LCD_WR_DATA8(0x34);
+	LCD_WR_REG(0x21);
+
+	LCD_WR_REG(0x29);
+}
+
+
+
+void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color) {
+	u16 i,j;
+	LCD_Address_Set(xsta,ysta,xend-1,yend-1);
+	for(i=ysta;i<yend;i++) {
+		for(j=xsta;j<xend;j++) {
+			LCD_WR_DATA(color);
+		}
+	}
+}
+
+void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[]) {
+	u16 i,j;
+	u32 k=0;
+	LCD_Address_Set(x,y,x+length-1,y+width-1);
+	for(i=0;i<length;i++) {
+		for(j=0;j<width;j++) {
+			LCD_WR_DATA8(pic[k*2]);
+			LCD_WR_DATA8(pic[k*2+1]);
+			k++;
+		}
+	}
+}
+
+
+int screen_width = 240;
+int screen_height = 128;
+int single_buffer_size = screen_width*screen_height;
+
 void oled_function(void* argument) {
 
 	// u8g2 在这里只用于绘制图形，屏幕的初始化与显示由独立的驱动实现
 	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
 
 	// sd_card_opration();
+
+	// for (int i = 0; i < 16; i++) {
+	// 	bit4_to_bit16_convert_color_set[i] = bit16_gray(i*0x11);
+	// }
 
 	qrcode.setPIC(&screen_pic).setContent("Hello World!");
 	hanoi.set_U8G2(&u8g2);
@@ -545,10 +782,14 @@ void oled_function(void* argument) {
 	app_selector.setPIC(&screen_pic);
 	app_selector.setTime(sTime);
 	std::hash<const char*> hash_fn;
-	ssd1327_init();
 	tbz::base64::encode((const unsigned char*)base64_in, sizeof(base64_in), (char*)base64_out);
 
-	ssd1327SetPosition(0, 0, 128, 128);
+	LCD_Init();
+
+	// ssd1327_init();
+	// vTaskDelay(100);
+	// ssd1327SetPosition(0, 0, 128, 128);
+
 
 	while (true) {
 		// 最高层级的弹窗
@@ -783,7 +1024,28 @@ void oled_function(void* argument) {
 
 		tbz::trans_u8g2buffer_to_4bitxbmp(u8g2.getBufferPtr(), screen_buffer, 128, 128);
 		screen_pic.mixBuffer(screen_buffer);
-		screenWrite(screen_buffer, 128*128/2);
+		// screenWrite(screen_buffer, 128*128/2);
+
+		// flip(LED);
+
+		LCD_Address_Set(0, 0, screen_width, screen_height);
+		// bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128*128/2);
+		bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128, 128, 240, 320);
+		screen_writeDatas(scrren_buffer_16bit, single_buffer_size);
+		screen_writeDatas(scrren_buffer_16bit+single_buffer_size, single_buffer_size);
+		// screen_writeDatas((uint8_t*)scrren_buffer_16bit, 57600);
+		// screen_writeDatas((uint8_t*)scrren_buffer_16bit+57600, 57600);
+		// for (int i = 0; i < 320; i++) {
+		// 	for (int j = 0; j < 120; j++) {
+		// 		auto pix = screen_buffer[i*64+j];
+		// 		uint16_t color1 = (pix>>4) & 0xff ? 0xffff : 0x0000;
+		// 		uint16_t color2 = pix & 0xff ? 0xffff : 0x0000;
+		// 		LCD_WR_DATA(color1);
+		// 		LCD_WR_DATA(color2);
+		// 	}
+		// }
+
+		// LCD_Fill(0, 0, 240, 240, rand());
 		vTaskDelay(10);
 	}
 }
@@ -828,3 +1090,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size) {
 		// HAL_UART_Receive_DMA(&huart4, streamer.getStreamBuffer(), 128*128/8);
 	}
 }
+
+
+// Void HAL_SPI_TxRxCallback ( SPI_HandleTypeDef *hspi) {
+// 	if (hspi -> Instance == SPI6) {
+// 		HAL_SPI_Transmit_IT()
+// 	}
+// }
