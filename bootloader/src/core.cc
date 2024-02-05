@@ -203,6 +203,9 @@ static void ssd1327SetPosition(int x, int y, int cx, int cy)
 	clr(M_DC);
 } /* ssd1327SetPosition() */
 
+#include "st7789.hpp"
+tbz::device::screen::st7789 st7789;
+
 
 void core(void) {
 
@@ -249,13 +252,15 @@ void core(void) {
 	// JumpToApp();
 	// jump2();
 
-	U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
-	u8g2.begin();
+	// U8G2_SSD1327_MIDAS_128X128_f_4W_HW_SPI u8g2(U8G2_R0);
+	// u8g2.begin();
 
+	st7789
+		.setup()
+		.setAddressWindow(0, 0, 240, 320)
+		.fillScreen(0xffff)
+		.setDisplayOn();
 	while (true) {
-		u8g2.setFont(u8g2_font_6x10_tf);
-		u8g2.drawCircle(64,64,32,U8G2_DRAW_ALL);
-		u8g2.sendBuffer();
 
 		flip(LED);
 		tbz::timer::delay_ms(50);
