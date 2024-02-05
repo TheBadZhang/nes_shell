@@ -166,7 +166,21 @@
         "app/Utilities",
         "codebase/lib/cmsis-dsp",
         "codebase/lib/qrcode",
-        "codebase/lib/base64"
+        "codebase/lib/base64",
+        "codebase/lib/GxEPD2",
+        "codebase/lib/infoNES",
+        "codebase/lib/letter-shell",
+        "codebase/lib/libutf8",
+        "codebase/lib/libxbmp",
+        "codebase/lib/lodepng",
+        "codebase/lib/NES_Simulator",
+        "codebase/lib/SFUD",
+        "codebase/lib/tween",
+        "codebase/lib/vnes",
+        "codebase/lib/uuid4",
+        "codebase/elib/device/w25q/w25q64.cc",
+        "codebase/elib/device/w25q/bsp_qspi_w25q128.c",
+        "codebase/elib/device/w25q/w25qxx.c"
       ],
       "toolchain": "GCC",
       "compileConfig": {
@@ -361,7 +375,14 @@
         "codebase/lib/letter-shell",
         "codebase/lib/tween",
         "codebase/lib/GxEPD2",
-        "codebase/lib/libutf8"
+        "codebase/lib/libutf8",
+        "codebase/lib/vnes",
+        "codebase/lib/NES/mapper/MAP源文件(未修改的)",
+        "codebase/lib/NES/mapper",
+        "codebase/lib/NES_Simulator/ROM__MARIO.c",
+        "codebase/lib/NES_Simulator",
+        "codebase/lib/infoNES/mapper",
+        "codebase/lib/infoNES/rom_mario.c"
       ],
       "toolchain": "GCC",
       "compileConfig": {
@@ -398,7 +419,8 @@
       "custom_dep": {
         "name": "default",
         "incList": [
-          ".eide/deps"
+          ".eide/deps",
+          "codebase/lib/infoNES/mapper"
         ],
         "libList": [
           "Drivers/CMSIS/Include"

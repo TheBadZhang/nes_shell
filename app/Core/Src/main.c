@@ -19,8 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
-#include "fatfs.h"
-#include "libjpeg.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -52,8 +50,6 @@ DCMI_HandleTypeDef hdcmi;
 
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c2;
-
-JPEG_HandleTypeDef hjpeg;
 
 RNG_HandleTypeDef hrng;
 
@@ -105,7 +101,6 @@ static void MX_I2C1_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_DCMI_Init(void);
 static void MX_RTC_Init(void);
-static void MX_JPEG_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM15_Init(void);
 static void MX_SDMMC1_SD_Init(void);
@@ -172,15 +167,12 @@ int main(void)
   MX_TIM17_Init();
   MX_DCMI_Init();
   MX_RTC_Init();
-  MX_JPEG_Init();
   MX_TIM16_Init();
   MX_TIM15_Init();
   MX_SDMMC1_SD_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_UART4_Init();
-  MX_LIBJPEG_Init();
-  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -603,32 +595,6 @@ static void MX_I2C2_Init(void)
 }
 
 /**
-  * @brief JPEG Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_JPEG_Init(void)
-{
-
-  /* USER CODE BEGIN JPEG_Init 0 */
-
-  /* USER CODE END JPEG_Init 0 */
-
-  /* USER CODE BEGIN JPEG_Init 1 */
-
-  /* USER CODE END JPEG_Init 1 */
-  hjpeg.Instance = JPEG;
-  if (HAL_JPEG_Init(&hjpeg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN JPEG_Init 2 */
-
-  /* USER CODE END JPEG_Init 2 */
-
-}
-
-/**
   * @brief RNG Initialization Function
   * @param None
   * @retval None
@@ -740,6 +706,10 @@ static void MX_SDMMC1_SD_Init(void)
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd1.Init.ClockDiv = 0;
+  if (HAL_SD_Init(&hsd1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN SDMMC1_Init 2 */
 
   /* USER CODE END SDMMC1_Init 2 */
@@ -1235,12 +1205,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : AR_Pin M_DC_Pin */
-  GPIO_InitStruct.Pin = AR_Pin|M_DC_Pin;
+  /*Configure GPIO pin : AR_Pin */
+  GPIO_InitStruct.Pin = AR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(AR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB2 */
   GPIO_InitStruct.Pin = GPIO_PIN_2;
@@ -1256,10 +1226,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : R3_Pin R2_Pin R1_Pin M_RST_Pin
-                           M_CS_Pin SPI1_CS_Pin */
-  GPIO_InitStruct.Pin = R3_Pin|R2_Pin|R1_Pin|M_RST_Pin
-                          |M_CS_Pin|SPI1_CS_Pin;
+  /*Configure GPIO pins : R3_Pin R2_Pin R1_Pin SPI1_CS_Pin */
+  GPIO_InitStruct.Pin = R3_Pin|R2_Pin|R1_Pin|SPI1_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1286,6 +1254,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(C1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : M_RST_Pin M_CS_Pin */
+  GPIO_InitStruct.Pin = M_RST_Pin|M_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : M_DC_Pin */
+  GPIO_InitStruct.Pin = M_DC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(M_DC_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB6 */
   GPIO_InitStruct.Pin = GPIO_PIN_6;

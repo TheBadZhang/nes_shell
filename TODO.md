@@ -65,7 +65,12 @@ APP选择器底部的弧形甚至会产生10fps的波动
 如果使用ospi的flash大概率没有办法直接使用openocd烧录程序了
 要么在bootloader里面实现一个简易的，也许是可以通过usb进行烧录的程序
 要么就是利用串口，通过bootloader烧写外部的hyper flash，这个倒是还得额外定制一个软件才行
-
+[OSPI 外扩 RAM](https://www.armbbs.cn/forum.php?mod=viewthread&tid=120719)
+[HyperRAM 选型](https://www.armbbs.cn/forum.php?mod=viewthread&tid=95578&fromuid=58)
+[HyperRAM 选型2](https://www.armbbs.cn/forum.php?mod=viewthread&tid=89669)
+[OSPI FLASH](https://www.armbbs.cn/forum.php?mod=viewthread&tid=96431)
 但是项目书里面提到了使用到了psram和nand flash，要用的话引脚绝对不够用了
 但是目前感觉ram还是比较够用的
 或许也可以考虑使用sd卡，把程序数据加载到psram里面执行
+[stm32h7 双 bank](https://blog.csdn.net/weixin_43166744/article/details/122473622)
+http://bbs.eeworld.com.cn/thread-1073902-1-1.html

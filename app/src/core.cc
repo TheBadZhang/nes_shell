@@ -22,6 +22,16 @@
 // #include "usbd_cdc_if.h"
 #include "st7735.h"
 
+#include "st7789.hpp"
+tbz::device::screen::st7789 st7789;
+
+
+int screen_width = 128;
+int screen_height = 128;
+
+uint8_t scrren_buffer_16bit[240*320*2];
+#include "libxbmp_extend.hpp"
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -32,7 +42,7 @@
 #include "snake.hpp"
 
 
-extern const unsigned short test_img_128x128[][128];
+// extern const unsigned short test_img_128x128[][128];
 
 #include "app.hpp"
 
@@ -315,54 +325,6 @@ tbz::PIC screen_pic(screen_buffer2, [](tbz::PIC& pic) {
 	pic.setMode(tbz::PIC::MODE::BIT4).setColor(0x01);
 });
 
-uint8_t scrren_buffer_16bit[240*320*2];
-constexpr uint16_t bit16_rgb(uint8_t r, uint8_t g, uint8_t b) {
-	uint16_t c = ((r&0b11111000) << 11) | ((g&0b11111100) << 5) | (b&0b11111000);
-	return (c&0xff00) >> 8 | (c&0x00ff) << 8;
-}
-constexpr uint16_t bit16_gray(uint8_t gray) {
-	return bit16_rgb(gray, gray, gray);
-}
-
-// #define bit16_gray(gray) bit16_rgb(gray, gray, gray)
-
-// 因为大小端的问题，所以这个颜色的高低字节需要对调
-// 所以你会看到这个颜色和 colors.h 给出的颜色是不一样的
-uint16_t bit4_to_bit16_convert_color_set[16] {
-	0x0000,	0x0000,
-	0x4D6B,	0x4D6B,
-	0x1084,	0x1084,
-	0x55AD,	0x55AD,
-	0x18C6,	0x18C6,
-	0x9AD6,	0x9AD6,
-	0xFBDE,	0xFBDE,
-	0xFFFF,	0xFFFF
-	// bit16_gray(0x00), bit16_gray(0x11), bit16_gray(0x22), bit16_gray(0x33),
-	// bit16_gray(0x44), bit16_gray(0x55), bit16_gray(0x66), bit16_gray(0x77),
-	// bit16_gray(0x88), bit16_gray(0x99), bit16_gray(0xAA), bit16_gray(0xBB),
-	// bit16_gray(0xCC), bit16_gray(0xDD), bit16_gray(0xEE), bit16_gray(0xFF)
-};
-void bit4_to_bit16(uint8_t* src, uint8_t* dst, int size) {
-	for (int i = 0; i < size; i++) {
-		dst[i*2] = bit4_to_bit16_convert_color_set[src[i] >> 4];
-		dst[i*2+1] = bit4_to_bit16_convert_color_set[src[i] & 0x0f];
-	}
-}
-
-
-void bit4_to_bit16(uint8_t* src, uint8_t* dst, int src_w, int src_h, int dst_w, int dst_h) {
-
-	int src_blen = src_w/2;
-	// int dst_blen = dst_w*2;
-
-	for (int i = 0; i < src_h; i++) {
-		for (int j = 0; j < src_blen; j++) {
-			uint16_t* dst_ptr = ((uint16_t*)(dst))+i*dst_w+j*2;
-			*dst_ptr = bit4_to_bit16_convert_color_set[src[i*src_blen+j] >> 4];
-			*(dst_ptr+1) = bit4_to_bit16_convert_color_set[src[i*src_blen+j] & 0x0f];
-		}
-	}
-}
 
 #include "moving_spider.hpp"
 tbz::moving_spider spider_web;
@@ -373,75 +335,77 @@ tbz::SPIN_DICE dice;
 #include "streamer.hpp"
 tbz::STREAMER streamer;
 
-extern FATFS SDFatFS;
-extern char SDPath[];
-extern FIL SDFile;
 
-void sd_card_opration(void) {
-	uint32_t byteswritten;                /* File write counts */
-	uint32_t bytesread;                   /* File read counts */
-	uint8_t wtext[] = "This is STM32 working with FatFs"; /* File write buffer */
-	uint8_t rtext[100];                   /* File read buffers */
-	char filename[] = "STM32cube.txt";
-	char SensorBuff[100];
-	// printf("********* STM32CubeMX FatFs Example *********\r\n\r\n");
-	if(f_mount(&SDFatFS,SDPath,1) == FR_OK){
-		// printf("f_mount sucess!!! \r\n");
-		if(f_open(&SDFile,filename,FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
-			// printf("f_open file sucess!!! \r\n");
-			if(f_write(&SDFile,wtext,sizeof(wtext),(UINT*)&byteswritten) == FR_OK){
-				// printf("f_write file sucess!!! \r\n");
-				// printf("f_write Data : %s\r\n",wtext);
-				// if(f_close(&SDFile) == FR_OK)
-					// printf("f_close sucess!!! \r\n");
-				// else
-					// printf("f_close error : %d\r\n",retSD);
-			}
-			// else
-				// printf("f_write file error\r\n");
-		}
-		// else
-			// printf("f_open file error\r\n");
-	}
-	// else
-		// printf("f_mount error : %d \r\n",retSD);
+// #include "ff.h"
+// extern FATFS SDFatFS;
+// extern char SDPath[];
+// extern FIL SDFile;
 
-	auto retSD = f_open(&SDFile, filename, FA_READ);
-	// if(retSD)
-	// 	printf("f_open file error : %d\r\n",retSD);
-	// else
-	// 	printf("f_open file sucess!!! \r\n");
+// void sd_card_opration(void) {
+// 	uint32_t byteswritten;                /* File write counts */
+// 	uint32_t bytesread;                   /* File read counts */
+// 	uint8_t wtext[] = "This is STM32 working with FatFs"; /* File write buffer */
+// 	uint8_t rtext[100];                   /* File read buffers */
+// 	char filename[] = "STM32cube.txt";
+// 	char SensorBuff[100];
+// 	// printf("********* STM32CubeMX FatFs Example *********\r\n\r\n");
+// 	if(f_mount(&SDFatFS,SDPath,1) == FR_OK){
+// 		// printf("f_mount sucess!!! \r\n");
+// 		if(f_open(&SDFile,filename,FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
+// 			// printf("f_open file sucess!!! \r\n");
+// 			if(f_write(&SDFile,wtext,sizeof(wtext),(UINT*)&byteswritten) == FR_OK){
+// 				// printf("f_write file sucess!!! \r\n");
+// 				// printf("f_write Data : %s\r\n",wtext);
+// 				// if(f_close(&SDFile) == FR_OK)
+// 					// printf("f_close sucess!!! \r\n");
+// 				// else
+// 					// printf("f_close error : %d\r\n",retSD);
+// 			}
+// 			// else
+// 				// printf("f_write file error\r\n");
+// 		}
+// 		// else
+// 			// printf("f_open file error\r\n");
+// 	}
+// 	// else
+// 		// printf("f_mount error : %d \r\n",retSD);
 
-	retSD = f_read(&SDFile, rtext, sizeof(rtext), (UINT*)&bytesread);
-	// if(retSD)
-	// 	printf("f_read error!!! %d\r\n",retSD);
-	// else{
-	// 	printf("f_read sucess!!! \r\n");
-	// 	printf("f_read Data : %s\r\n",rtext);
-	// }
+// 	auto retSD = f_open(&SDFile, filename, FA_READ);
+// 	// if(retSD)
+// 	// 	printf("f_open file error : %d\r\n",retSD);
+// 	// else
+// 	// 	printf("f_open file sucess!!! \r\n");
 
-	retSD = f_close(&SDFile);
-	// if(retSD)
-	// 	printf("f_close error!!! %d\r\n",retSD);
-	// else
-	// 	printf("f_close sucess!!! \r\n");
+// 	retSD = f_read(&SDFile, rtext, sizeof(rtext), (UINT*)&bytesread);
+// 	// if(retSD)
+// 	// 	printf("f_read error!!! %d\r\n",retSD);
+// 	// else{
+// 	// 	printf("f_read sucess!!! \r\n");
+// 	// 	printf("f_read Data : %s\r\n",rtext);
+// 	// }
 
-	// if(bytesread == byteswritten)
-	// 	printf("FatFs is working well!!!\r\n");
+// 	retSD = f_close(&SDFile);
+// 	// if(retSD)
+// 	// 	printf("f_close error!!! %d\r\n",retSD);
+// 	// else
+// 	// 	printf("f_close sucess!!! \r\n");
 
-	if(f_open(&SDFile,(const char*)"Sensor.csv",FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
-		// printf("Sensor.csv was opened/created!!!\r\n");
-		sprintf(SensorBuff, "Item,Temp,Humi,Light\r\n");
-		f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
+// 	// if(bytesread == byteswritten)
+// 	// 	printf("FatFs is working well!!!\r\n");
 
-		for(int i = 0; i < 10; i++){
-			sprintf(SensorBuff, "%d,%d,%d,%d\r\n",i + 1, i + 20, i + 30, i + 40);
-			f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
-			f_sync(&SDFile);
-		}
-		f_close(&SDFile);
-	}
-}
+// 	if(f_open(&SDFile,(const char*)"Sensor.csv",FA_CREATE_ALWAYS|FA_WRITE) == FR_OK){
+// 		// printf("Sensor.csv was opened/created!!!\r\n");
+// 		sprintf(SensorBuff, "Item,Temp,Humi,Light\r\n");
+// 		f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
+
+// 		for(int i = 0; i < 10; i++){
+// 			sprintf(SensorBuff, "%d,%d,%d,%d\r\n",i + 1, i + 20, i + 30, i + 40);
+// 			f_write(&SDFile,SensorBuff,strlen(SensorBuff),(UINT*)&byteswritten);
+// 			f_sync(&SDFile);
+// 		}
+// 		f_close(&SDFile);
+// 	}
+// }
 
 int show_keyboard(tbz::PIC& pic) {
 	int pressed_key_count = 0;
@@ -467,12 +431,17 @@ int show_keyboard(tbz::PIC& pic) {
 
 
 
-#include "st7789.hpp"
-tbz::device::screen::st7789 st7789;
+#include "InfoNES.h"
 
+void NES_LCD_DisplayLine(int y_axes, uint16 *Disaplyline_buffer) {
+	uint32_t index;
 
-int screen_width = 128;
-int screen_height = 128;
+	st7789.setAddressWindow2(0, 256, y_axes, y_axes+1);
+	auto ptr = scrren_buffer_16bit;
+	for(index = 8; index < 264; index++) {
+		ptr[y_axes+(index-8)*240] = Disaplyline_buffer[index];
+	}
+}
 
 void oled_function(void* argument) {
 
@@ -482,7 +451,7 @@ void oled_function(void* argument) {
 	// sd_card_opration();
 
 	// for (int i = 0; i < 16; i++) {
-	// 	bit4_to_bit16_convert_color_set[i] = bit16_gray(i*0x11);
+	// 	bit4_to_bit16_color_index[i] = bit16_gray(i*0x11);
 	// }
 
 	qrcode.setPIC(&screen_pic).setContent("Hello World!");
@@ -518,6 +487,9 @@ void oled_function(void* argument) {
 		})
 		.setAddressWindow2((240-128)/2, (320-128)/2, screen_width, screen_height);
 
+	// if(InfoNES_Load(NULL) == 0) {
+	// 	InfoNES_Main();
+	// }
 
 	while (true) {
 		// 最高层级的弹窗
@@ -552,7 +524,7 @@ void oled_function(void* argument) {
 		}
 
 		// screen_pic.clear();
-		screen_pic.fade_clear();
+		screen_pic.fade_clear2();
 		// 当前场景（部分动画或者弹窗依赖此状态）
 		switch (now_scene) {
 			case WINDOW::fade_animation: {
@@ -747,9 +719,11 @@ void oled_function(void* argument) {
 
 
 		tbz::trans_u8g2buffer_to_4bitxbmp(u8g2.getBufferPtr(), screen_buffer, 128, 128);
-		screen_pic.mixBuffer(screen_buffer);
+		// screen_pic.mix4BitBufferFrom(screen_buffer);  // 给 u8g2 的元素也添加 fade_clear2 效果
+		screen_pic.mixBufferTo(screen_buffer);
 
 		bit4_to_bit16(screen_buffer, scrren_buffer_16bit, 128, 128, screen_width, screen_height);
+
 		st7789.sendBuffer();
 
 		vTaskDelay(5);
