@@ -77,7 +77,9 @@
             "numeric": "cpp",
             "random": "cpp",
             "numbers": "cpp",
-            "xstring": "cpp"
+            "xstring": "cpp",
+            "6502.H": "cpp",
+            "6502.C": "cpp"
         },
         "[yaml]": {
             "editor.insertSpaces": true,

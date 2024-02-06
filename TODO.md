@@ -1,20 +1,36 @@
 
-https://github.com/Robert-van-Engelen/tinylisp
-fe-lisp
-尝试添加一个 lisp repl 到项目当中
+
+SD卡读写：含FatFS
+
+
+
+现在完成了 usb cdc device 的功能，可以通过usb串口进行调试了
+或许可以考虑使用这个烧录固件
+
+参考 uf2 实现 usb 拖拽烧录
+
+USB操作：鼠标、键盘、U盘以及
+
+模拟U盘（固件烧录，一般来说这个部分不含内部flash的更新，避免破坏bootloader）
+in 128K 内部 flash（如果不够的话只能想办法使用 flash 使程序加载到ram中后再执行了
+
+
+可以在电脑上模拟完成的部分：
 
 https://www.taterli.com/3199/
 https://twitter.com/shuichi_takano/status/1477702448907419649
 https://github.com/pondahai
 nes 模拟器
 
-手写数字识别
+libjpeg dma2d
+png编解码：https://lodev.org/lodepng/
 
-摄像头
+手写数字识别
 
 滚动数字时钟
 
-SD卡读写
+井字棋游戏
+⚀⚁⚂⚃⚄⚅
 
 font_large_font1.c中的lc1602字体，可以尝试使用 1602_sim 模拟一下
 
@@ -33,6 +49,19 @@ PIC 文字显示
 BDF 字体文件
 
 
+
+非必要的功能：
+
+SPI Flash 读写，可以用于存储一些生成的数据，但是好像也没有什么用
+
+https://github.com/Robert-van-Engelen/tinylisp
+fe-lisp
+尝试添加一个 lisp repl 到项目当中
+
+APP 调试的问题
+
+摄像头
+
 使用xmake构建dsp库生成指定版本的lib文件（优化编译速度）
 
 实现 ramfunc
@@ -41,13 +70,8 @@ https://github.com/miloyip/misc/tree/master
 https://github.com/miloyip/light2d/tree/master
 https://github.com/miloyip/line/tree/master
 
-井字棋游戏
-⚀⚁⚂⚃⚄⚅
 
-libjpeg dma2d
-png编解码：https://lodev.org/lodepng/
-
-APP 调试的问题
+寒假暂时做不了的事情（需要用到新的硬件）
 
 STM32 多应用构想：
 内置flash用于加载“应用加载程序”到内部内存中
@@ -74,3 +98,9 @@ APP选择器底部的弧形甚至会产生10fps的波动
 或许也可以考虑使用sd卡，把程序数据加载到psram里面执行
 [stm32h7 双 bank](https://blog.csdn.net/weixin_43166744/article/details/122473622)
 http://bbs.eeworld.com.cn/thread-1073902-1-1.html
+
+
+读写SD卡（如果使用外部hs芯片的话）
+作为电脑摄像头
+作为电脑麦克风
+作为电脑扬声器

@@ -180,6 +180,9 @@ extern "C" void led0_task(void* argument) {
 	lua_register(L, "flip", lua_flip_LED);
 	lua_register(L, "uart_send", uart_send);
 
+	extern void cdc_acm_init(void);
+	cdc_acm_init();
+
 	while (true) {
 		fps_count = fps_count0;
 		fps_count0 = 0;
@@ -187,6 +190,8 @@ extern "C" void led0_task(void* argument) {
 			char* err = (char*)lua_tostring(L, -1);
 			my_printf(buf, "lua error:%s\n", err);
 		}
+		extern void cdc_acm_data_send_with_dtr_test(void);
+		cdc_acm_data_send_with_dtr_test();
 		// my_printf(buf, "fps:%d\n", fps_count);
 		// flip(LED);
 		// https://blog.csdn.net/qq_32216815/article/details/116934350
@@ -431,17 +436,17 @@ int show_keyboard(tbz::PIC& pic) {
 
 
 
-#include "InfoNES.h"
+// #include "InfoNES.h"
 
-void NES_LCD_DisplayLine(int y_axes, uint16 *Disaplyline_buffer) {
-	uint32_t index;
+// void NES_LCD_DisplayLine(int y_axes, uint16 *Disaplyline_buffer) {
+// 	uint32_t index;
 
-	st7789.setAddressWindow2(0, 256, y_axes, y_axes+1);
-	auto ptr = scrren_buffer_16bit;
-	for(index = 8; index < 264; index++) {
-		ptr[y_axes+(index-8)*240] = Disaplyline_buffer[index];
-	}
-}
+// 	st7789.setAddressWindow2(0, 256, y_axes, y_axes+1);
+// 	auto ptr = scrren_buffer_16bit;
+// 	for(index = 8; index < 264; index++) {
+// 		ptr[y_axes+(index-8)*240] = Disaplyline_buffer[index];
+// 	}
+// }
 
 void oled_function(void* argument) {
 
