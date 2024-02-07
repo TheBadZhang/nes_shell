@@ -30,12 +30,13 @@ int screen_width = 128;
 int screen_height = 128;
 
 uint8_t scrren_buffer_16bit[240*320*2];
-#include "libxbmp_extend.hpp"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include "libxbmp.hpp"
+#include "libxbmp_extend.hpp"
+#include "libxbmp_port_to_u8g2.hpp"
 
 #include "tinyexpr.h"
 #include "hanoi.hpp"
@@ -236,14 +237,6 @@ extern "C" void load(void) {
 	keyscanHandle = osThreadNew(key_scan, NULL, &keyscan_attributes);
 	keyscanHandle = osThreadNew(led0_task, NULL, &LED_attributes);
 }
-
-extern "C" time_t time(time_t * time){
-	return 0;
-}
-extern "C" int system(const char * string){
-	return 0;
-}
-
 
 
 void ips_func(void* argument) {
