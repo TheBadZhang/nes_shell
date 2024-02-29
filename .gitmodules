@@ -1,0 +1,3 @@
+[submodule "nespp"]
+	path = nespp
+	url = https://github.com/TheBadZhang/nespp.git
