@@ -16,7 +16,6 @@ hardware/nes_shell_2/fp-info-cache
 .eide.usr.ctx.json
 
 # project out
-/build
 /bin
 /obj
 /out
@@ -26,6 +25,10 @@ software/game_shell/app/STM32H7B0VBTx_FLASH.ld
 software/game_shell/bootloader/Drivers
 software/game_shell/bootloader/Middlewares
 software/game_shell/bootloader/STM32H7B0VBTx_FLASH.ld
+software/game_shell/build/
+software/game_shell/app/Third_Party/
+software/game_shell/app/Utilities/
+software/game_shell/app/LIBJPEG/
 
 *.png
 app/Hanoi/res/hanoi_res_oled_128128.aseprite
