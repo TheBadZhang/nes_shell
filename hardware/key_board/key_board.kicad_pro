@@ -6,7 +6,7 @@
         "apply_defaults_to_fp_fields": false,
         "apply_defaults_to_fp_shapes": false,
         "apply_defaults_to_fp_text": false,
-        "board_outline_line_width": 0.1,
+        "board_outline_line_width": 0.05,
         "copper_line_width": 0.2,
         "copper_text_italic": false,
         "copper_text_size_h": 1.5,
@@ -30,7 +30,7 @@
         "fab_text_size_v": 1.0,
         "fab_text_thickness": 0.15,
         "fab_text_upright": false,
-        "other_line_width": 0.15,
+        "other_line_width": 0.1,
         "other_text_italic": false,
         "other_text_size_h": 1.0,
         "other_text_size_v": 1.0,
@@ -41,23 +41,17 @@
           "height": 1.524,
           "width": 1.524
         },
-        "silk_line_width": 0.15,
+        "silk_line_width": 0.1,
         "silk_text_italic": false,
         "silk_text_size_h": 1.0,
         "silk_text_size_v": 1.0,
-        "silk_text_thickness": 0.15,
+        "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [
-        {
-          "gap": 0.0,
-          "via_gap": 0.0,
-          "width": 0.0
-        }
-      ],
+      "diff_pair_dimensions": [],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -115,24 +109,22 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.09,
+        "min_clearance": 0.0,
         "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.0,
-        "min_hole_clearance": 0.1,
+        "min_copper_edge_clearance": 0.5,
+        "min_hole_clearance": 0.25,
         "min_hole_to_hole": 0.25,
-        "min_microvia_diameter": 0.3,
-        "min_microvia_drill": 0.2,
+        "min_microvia_diameter": 0.2,
+        "min_microvia_drill": 0.1,
         "min_resolved_spokes": 2,
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.5,
-        "min_track_width": 0.09,
-        "min_via_annular_width": 0.15,
-        "min_via_diameter": 0.25,
-        "solder_mask_clearance": 0.0,
-        "solder_mask_min_width": 0.0,
-        "solder_mask_to_copper_clearance": 0.005,
+        "min_through_hole_diameter": 0.3,
+        "min_track_width": 0.0,
+        "min_via_annular_width": 0.1,
+        "min_via_diameter": 0.5,
+        "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
       "teardrop_options": [
@@ -178,49 +170,34 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [
-        0.0,
-        0.09,
-        0.1,
-        0.2,
-        0.3
-      ],
+      "track_widths": [],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
-          "corner_radius_percentage": 100,
+          "corner_radius_percentage": 80,
           "corner_style": 1,
           "max_amplitude": 1.0,
-          "min_amplitude": 0.1,
+          "min_amplitude": 0.2,
           "single_sided": false,
-          "spacing": 0.6
+          "spacing": 1.0
         },
         "diff_pair_skew_defaults": {
-          "corner_radius_percentage": 100,
+          "corner_radius_percentage": 80,
           "corner_style": 1,
           "max_amplitude": 1.0,
-          "min_amplitude": 0.1,
+          "min_amplitude": 0.2,
           "single_sided": false,
           "spacing": 0.6
         },
         "single_track_defaults": {
-          "corner_radius_percentage": 100,
+          "corner_radius_percentage": 80,
           "corner_style": 1,
           "max_amplitude": 1.0,
-          "min_amplitude": 0.1,
+          "min_amplitude": 0.2,
           "single_sided": false,
           "spacing": 0.6
         }
       },
-      "via_dimensions": [
-        {
-          "diameter": 0.0,
-          "drill": 0.0
-        },
-        {
-          "diameter": 0.3,
-          "drill": 0.2
-        }
-      ],
+      "via_dimensions": [],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -438,7 +415,7 @@
       "no_connect_dangling": "warning",
       "pin_not_connected": "error",
       "pin_not_driven": "error",
-      "pin_to_pin": "error",
+      "pin_to_pin": "warning",
       "power_pin_not_driven": "error",
       "similar_labels": "warning",
       "simulation_model_issue": "ignore",
@@ -453,14 +430,14 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "nes_shell.kicad_pro",
+    "filename": "key_board.kicad_pro",
     "version": 1
   },
   "net_settings": {
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.1,
+        "clearance": 0.2,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -470,26 +447,9 @@
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.25,
-        "via_diameter": 0.8,
-        "via_drill": 0.4,
-        "wire_width": 6
-      },
-      {
-        "bus_width": 12,
-        "clearance": 0.1,
-        "diff_pair_gap": 0.25,
-        "diff_pair_via_gap": 0.25,
-        "diff_pair_width": 0.2,
-        "line_style": 0,
-        "microvia_diameter": 0.3,
-        "microvia_drill": 0.1,
-        "name": "bga_pin_out",
-        "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.1,
-        "via_diameter": 0.3,
-        "via_drill": 0.2,
+        "track_width": 0.2,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
         "wire_width": 6
       }
     ],
@@ -508,7 +468,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "nes_shell.step",
+      "step": "key_board.step",
       "svg": "",
       "vrml": ""
     },
@@ -614,64 +574,8 @@
   },
   "sheets": [
     [
-      "2a02a593-8b03-4111-9b13-1dcca61e571c",
+      "41423ba5-f1c3-4db6-9815-d7ab2405db1b",
       "根目录"
-    ],
-    [
-      "987eb2f3-dd01-4069-9de3-6f297f210b71",
-      "M0S-daplink"
-    ],
-    [
-      "abcab13d-f0ac-466a-b3c7-0f45cdd7e23f",
-      "ADR421"
-    ],
-    [
-      "39d55cc6-a2c5-43e5-8b98-a20255ce55f0",
-      "AXP2101"
-    ],
-    [
-      "e906256f-f2d4-42d9-8884-6521d98d5204",
-      "按键部分"
-    ],
-    [
-      "d6490ba4-9448-4c3a-ab99-0f89e4feb376",
-      "电源管理"
-    ],
-    [
-      "343b33b7-ffcc-474b-80a7-c25aa349aab6",
-      "USB通信"
-    ],
-    [
-      "ad5ba87e-ae35-4214-95c5-2c5c06b8f58f",
-      "音视频输入输出"
-    ],
-    [
-      "213e4a77-a704-45cb-8b64-868073f67406",
-      "PMOD接口"
-    ],
-    [
-      "720844ac-8a87-468f-a004-c01ab0756cf7",
-      "QSPI_Flash"
-    ],
-    [
-      "2d329739-080e-4ec2-9cc1-c4306474f07f",
-      "SDRAM"
-    ],
-    [
-      "ccdc5e2c-7338-4c2a-b039-932b83cee6b3",
-      "MPU9250"
-    ],
-    [
-      "4e955a28-a6ed-48b2-a114-fef18e4a4095",
-      "CH343P"
-    ],
-    [
-      "e3195643-70d0-4864-9ef6-3ff27a9cd1c8",
-      "RT9193"
-    ],
-    [
-      "70bdf570-88a7-4a29-b1c8-d3011231db02",
-      "USB3300"
     ]
   ],
   "text_variables": {}

@@ -1,0 +1,1492 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "fb1e40a7-498b-4c30-82f8-6800cec05c6a")
+	(paper "A4")
+	(lib_symbols
+		(symbol "Device:C"
+			(pin_numbers hide)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "PCM_4ms_Power-symbol:GND"
+			(power)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0) hide
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "my_chips:RT9193-33GB"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "RT9193-33GB"
+				(at 0 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+				(at -1.27 8.89 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "RT9193-33GB_0_1"
+				(rectangle
+					(start -6.35 5.08)
+					(end 6.35 -5.08)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "RT9193-33GB_1_1"
+				(pin power_in line
+					(at -8.89 2.54 0)
+					(length 2.54)
+					(name "Vin"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -8.89 0 0)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -8.89 -2.54 0)
+					(length 2.54)
+					(name "EN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 8.89 -1.27 180)
+					(length 2.54)
+					(name "BP"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 8.89 2.54 180)
+					(length 2.54)
+					(name "Vout"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+	(junction
+		(at 107.95 74.93)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0ef82b13-68d9-4857-9989-f27b32c7a82b")
+	)
+	(junction
+		(at 116.84 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "33d5b1ad-9463-4b0d-aa46-2303eea5a70e")
+	)
+	(junction
+		(at 153.67 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "474e8f41-7207-442a-baba-cf8d73da7f24")
+	)
+	(junction
+		(at 120.65 74.93)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "4b3f5fef-dc9a-4b29-a2a7-4556c8e3d63d")
+	)
+	(junction
+		(at 158.75 74.93)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "669a5558-9a12-4808-ae46-6c9b4d5d9b0b")
+	)
+	(junction
+		(at 123.19 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "8ab27320-f5d5-4c66-ba4a-d621e2c5004b")
+	)
+	(junction
+		(at 116.84 74.93)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b772f486-be2a-4001-accf-e9ad1208b69b")
+	)
+	(wire
+		(pts
+			(xy 124.46 80.01) (xy 120.65 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "020c3d73-67f4-405d-aa4f-e962b148d56d")
+	)
+	(wire
+		(pts
+			(xy 142.24 78.74) (xy 144.78 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0bec23a9-0964-4927-9dbc-63ca08bba3e9")
+	)
+	(wire
+		(pts
+			(xy 123.19 77.47) (xy 123.19 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0ed392ad-e708-47bf-8522-4b0f14841332")
+	)
+	(wire
+		(pts
+			(xy 116.84 87.63) (xy 123.19 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "215cba26-dbb6-40ab-a23d-85d80116b392")
+	)
+	(wire
+		(pts
+			(xy 116.84 82.55) (xy 116.84 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "25f0547a-0016-40c3-9c42-c758fb2db7f2")
+	)
+	(wire
+		(pts
+			(xy 123.19 87.63) (xy 123.19 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2ed8f693-5cdf-4af8-a222-ea8e53e1afa3")
+	)
+	(wire
+		(pts
+			(xy 107.95 87.63) (xy 116.84 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2f26eac3-762d-42a2-8535-2e3a1e658f92")
+	)
+	(wire
+		(pts
+			(xy 120.65 80.01) (xy 120.65 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "34a0aad0-1018-4f04-81aa-6ac560caa66e")
+	)
+	(wire
+		(pts
+			(xy 152.4 78.74) (xy 153.67 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d7a4220-d9f7-4fb2-b7e0-21a634cc8324")
+	)
+	(wire
+		(pts
+			(xy 116.84 74.93) (xy 120.65 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "52698d29-3777-4df1-8025-6e2ccaed96fb")
+	)
+	(wire
+		(pts
+			(xy 124.46 77.47) (xy 123.19 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6202db7e-cd65-48fe-b716-6c71c842c121")
+	)
+	(wire
+		(pts
+			(xy 102.87 74.93) (xy 107.95 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "655bfa4a-0a33-4470-80ed-0d2e2512870d")
+	)
+	(wire
+		(pts
+			(xy 165.1 74.93) (xy 158.75 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "701da80b-58cf-4dd6-8bc1-4621f72712bf")
+	)
+	(wire
+		(pts
+			(xy 153.67 87.63) (xy 123.19 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e76a608-e77c-4697-9d2b-5527804d92c1")
+	)
+	(wire
+		(pts
+			(xy 158.75 87.63) (xy 153.67 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8e9b9f5a-38e2-4502-91b4-3a8d325eb618")
+	)
+	(wire
+		(pts
+			(xy 142.24 74.93) (xy 158.75 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "914c1358-90b6-4442-adbe-47abe35972ee")
+	)
+	(wire
+		(pts
+			(xy 107.95 82.55) (xy 107.95 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bde38790-eb18-4013-a56e-c08627d03d02")
+	)
+	(wire
+		(pts
+			(xy 153.67 78.74) (xy 153.67 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ca5058e9-d5cf-4b03-a09f-725b40ff0a2c")
+	)
+	(wire
+		(pts
+			(xy 107.95 74.93) (xy 116.84 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cdac5ce4-3609-4129-b56a-07a34d713016")
+	)
+	(wire
+		(pts
+			(xy 158.75 82.55) (xy 158.75 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f4a02301-b5d3-461a-a344-ae5c54b9b727")
+	)
+	(wire
+		(pts
+			(xy 120.65 74.93) (xy 124.46 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffa039f0-9524-4902-9773-ecf9c387f2f5")
+	)
+	(hierarchical_label "GND"
+		(shape input)
+		(at 123.19 90.17 270)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "1ab92d1f-f6f1-43f5-9c5f-6a03ba676f0b")
+	)
+	(hierarchical_label "+5V"
+		(shape input)
+		(at 102.87 74.93 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "5401bd36-7171-4bb7-aa29-26ee3b4c5980")
+	)
+	(hierarchical_label "+3V3"
+		(shape output)
+		(at 165.1 74.93 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5fd54a85-ed0c-4c08-b219-ec1f2247fa8a")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 116.84 78.74 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0cc1dbf8-3d07-496a-b8b5-345679076d78")
+		(property "Reference" "C12"
+			(at 120.65 78.105 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 120.65 80.645 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 117.8052 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 116.84 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 116.84 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9971ec0b-66e4-4587-a5d4-4f2b7bb10c3c")
+		)
+		(pin "2"
+			(uuid "b1913d7b-5102-4da5-bcab-e94331577758")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+			(project "TM1688 点阵LED"
+				(path "/1f1be237-b8f0-4f90-b1c3-aa716c2fe762/409139fc-2ed9-4081-a856-62c2d5e79e03"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "C97")
+					(unit 1)
+				)
+			)
+			(project "AIR32F103CCT6 小号开发板"
+				(path "/2cd6feb5-3cfc-4a01-a93a-76141828d5dd/029def08-3c5f-48bf-bf2a-d8aa6fe41afe"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips-160x80-0.96-插拔模块"
+				(path "/4bd26d72-73e8-42ed-a911-1704773aa31f/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips_clock"
+				(path "/55361c69-3f5d-45df-824b-c6b8844eddf6/03fee7d4-ecec-4f30-9f67-96203cb92a97/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "rt9193-33GB"
+				(path "/6f3aa821-063c-4350-9712-316905d6e52d"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_oled_board"
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/a3124e3c-f438-42d7-8e0a-006d8822c9bc"
+					(reference "C6")
+					(unit 1)
+				)
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/d55dccb9-3774-4ecf-82ca-c34c47af92ae/31b8ac61-b0b8-46c3-b4ba-57574b421921"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "C4")
+					(unit 1)
+				)
+			)
+			(project "PMOD OLED 0.96 竖屏"
+				(path "/928c0aa5-61b6-4d54-85f2-b1c80dd05294/c5c4c507-73ef-4e51-a6c5-9ec36c1f9e3c"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_miniboard"
+				(path "/fd1910c0-07af-45b7-92a4-3a8430d05813/7381cf78-2d3e-46be-883b-f6fa6c731a3d"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 148.59 78.74 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1da45137-c8e5-4d5d-bda6-67aff9cbfbef")
+		(property "Reference" "C13"
+			(at 148.59 71.12 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "22nF"
+			(at 148.59 73.66 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 152.4 77.7748 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 148.59 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 148.59 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d7a5e18b-8060-43e0-abcb-9bd706980a9f")
+		)
+		(pin "2"
+			(uuid "c2296365-6552-4dfa-9d83-d178c3bc2991")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "C13")
+					(unit 1)
+				)
+			)
+			(project "TM1688 点阵LED"
+				(path "/1f1be237-b8f0-4f90-b1c3-aa716c2fe762/409139fc-2ed9-4081-a856-62c2d5e79e03"
+					(reference "C13")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "C98")
+					(unit 1)
+				)
+			)
+			(project "AIR32F103CCT6 小号开发板"
+				(path "/2cd6feb5-3cfc-4a01-a93a-76141828d5dd/029def08-3c5f-48bf-bf2a-d8aa6fe41afe"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips-160x80-0.96-插拔模块"
+				(path "/4bd26d72-73e8-42ed-a911-1704773aa31f/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips_clock"
+				(path "/55361c69-3f5d-45df-824b-c6b8844eddf6/03fee7d4-ecec-4f30-9f67-96203cb92a97/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "rt9193-33GB"
+				(path "/6f3aa821-063c-4350-9712-316905d6e52d"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_oled_board"
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/a3124e3c-f438-42d7-8e0a-006d8822c9bc"
+					(reference "C7")
+					(unit 1)
+				)
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/d55dccb9-3774-4ecf-82ca-c34c47af92ae/31b8ac61-b0b8-46c3-b4ba-57574b421921"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+			(project "PMOD OLED 0.96 竖屏"
+				(path "/928c0aa5-61b6-4d54-85f2-b1c80dd05294/c5c4c507-73ef-4e51-a6c5-9ec36c1f9e3c"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "C13")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_miniboard"
+				(path "/fd1910c0-07af-45b7-92a4-3a8430d05813/7381cf78-2d3e-46be-883b-f6fa6c731a3d"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 158.75 78.74 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "46b10d13-5f5e-47c8-be4a-fbdbf006566a")
+		(property "Reference" "C14"
+			(at 162.56 77.4699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "4.7uF"
+			(at 162.56 80.0099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 157.7848 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 158.75 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 158.75 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "221b8fe8-4906-47b8-a0eb-eba50f8e666c")
+		)
+		(pin "2"
+			(uuid "edbb0312-5e78-4c32-bf2a-81d9974392c3")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+			(project "TM1688 点阵LED"
+				(path "/1f1be237-b8f0-4f90-b1c3-aa716c2fe762/409139fc-2ed9-4081-a856-62c2d5e79e03"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "C99")
+					(unit 1)
+				)
+			)
+			(project "AIR32F103CCT6 小号开发板"
+				(path "/2cd6feb5-3cfc-4a01-a93a-76141828d5dd/029def08-3c5f-48bf-bf2a-d8aa6fe41afe"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips-160x80-0.96-插拔模块"
+				(path "/4bd26d72-73e8-42ed-a911-1704773aa31f/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips_clock"
+				(path "/55361c69-3f5d-45df-824b-c6b8844eddf6/03fee7d4-ecec-4f30-9f67-96203cb92a97/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "rt9193-33GB"
+				(path "/6f3aa821-063c-4350-9712-316905d6e52d"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_oled_board"
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/a3124e3c-f438-42d7-8e0a-006d8822c9bc"
+					(reference "C8")
+					(unit 1)
+				)
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/d55dccb9-3774-4ecf-82ca-c34c47af92ae/31b8ac61-b0b8-46c3-b4ba-57574b421921"
+					(reference "C4")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+			(project "PMOD OLED 0.96 竖屏"
+				(path "/928c0aa5-61b6-4d54-85f2-b1c80dd05294/c5c4c507-73ef-4e51-a6c5-9ec36c1f9e3c"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_miniboard"
+				(path "/fd1910c0-07af-45b7-92a4-3a8430d05813/7381cf78-2d3e-46be-883b-f6fa6c731a3d"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "PCM_4ms_Power-symbol:GND")
+		(at 153.67 87.63 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8dc8e95a-4957-47b6-b361-57088aaca663")
+		(property "Reference" "#PWR014"
+			(at 153.67 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 153.67 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 153.67 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 153.67 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 153.67 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1387a5cd-4715-4831-8c74-5a3280b65fba")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "#PWR0134")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "my_chips:RT9193-33GB")
+		(at 133.35 77.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b5a04fca-1cf0-4df6-8c6a-99bea27118af")
+		(property "Reference" "U5"
+			(at 133.35 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "RT9193-33GB"
+			(at 133.35 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 132.08 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 133.35 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 133.35 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "41f4b84b-cdf0-4421-aec1-8786444e7176")
+		)
+		(pin "2"
+			(uuid "af841f29-7245-4621-89fb-6a3c5a11823b")
+		)
+		(pin "3"
+			(uuid "55723e58-ce81-4c5a-93b6-3ff7c8774af7")
+		)
+		(pin "4"
+			(uuid "d5e0ac76-38f6-419f-898c-1312ee6266cc")
+		)
+		(pin "5"
+			(uuid "bf212dff-ac7d-4124-828e-d73beed000bb")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+			(project "TM1688 点阵LED"
+				(path "/1f1be237-b8f0-4f90-b1c3-aa716c2fe762/409139fc-2ed9-4081-a856-62c2d5e79e03"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "U19")
+					(unit 1)
+				)
+			)
+			(project "AIR32F103CCT6 小号开发板"
+				(path "/2cd6feb5-3cfc-4a01-a93a-76141828d5dd/029def08-3c5f-48bf-bf2a-d8aa6fe41afe"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "ips-160x80-0.96-插拔模块"
+				(path "/4bd26d72-73e8-42ed-a911-1704773aa31f/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "ips_clock"
+				(path "/55361c69-3f5d-45df-824b-c6b8844eddf6/03fee7d4-ecec-4f30-9f67-96203cb92a97/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "U4")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_oled_board"
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/a3124e3c-f438-42d7-8e0a-006d8822c9bc"
+					(reference "U3")
+					(unit 1)
+				)
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/d55dccb9-3774-4ecf-82ca-c34c47af92ae/31b8ac61-b0b8-46c3-b4ba-57574b421921"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "U3")
+					(unit 1)
+				)
+			)
+			(project "PMOD OLED 0.96 竖屏"
+				(path "/928c0aa5-61b6-4d54-85f2-b1c80dd05294/c5c4c507-73ef-4e51-a6c5-9ec36c1f9e3c"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_miniboard"
+				(path "/fd1910c0-07af-45b7-92a4-3a8430d05813/7381cf78-2d3e-46be-883b-f6fa6c731a3d"
+					(reference "U4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 107.95 78.74 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ebca9196-ae3e-4d59-bb44-578c048ab4cd")
+		(property "Reference" "C11"
+			(at 111.76 77.4699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "4.7uF"
+			(at 111.76 80.0099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+			(at 108.9152 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 107.95 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 107.95 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7d91cbf8-022f-4a90-9768-c842fe2521a9")
+		)
+		(pin "2"
+			(uuid "8cc8d4fc-6826-428d-96c8-dd12a53eb641")
+		)
+		(instances
+			(project "stm32g031g8u6 点阵 LED"
+				(path "/07751fee-c37d-4fa5-a113-e1397c558feb/98995d2e-221f-42e8-8ebd-4a240f114b11"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+			(project "TM1688 点阵LED"
+				(path "/1f1be237-b8f0-4f90-b1c3-aa716c2fe762/409139fc-2ed9-4081-a856-62c2d5e79e03"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+			(project "nes_shell"
+				(path "/2a02a593-8b03-4111-9b13-1dcca61e571c/343b33b7-ffcc-474b-80a7-c25aa349aab6/e3195643-70d0-4864-9ef6-3ff27a9cd1c8"
+					(reference "C96")
+					(unit 1)
+				)
+			)
+			(project "AIR32F103CCT6 小号开发板"
+				(path "/2cd6feb5-3cfc-4a01-a93a-76141828d5dd/029def08-3c5f-48bf-bf2a-d8aa6fe41afe"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips-160x80-0.96-插拔模块"
+				(path "/4bd26d72-73e8-42ed-a911-1704773aa31f/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "ips_clock"
+				(path "/55361c69-3f5d-45df-824b-c6b8844eddf6/03fee7d4-ecec-4f30-9f67-96203cb92a97/b63819d3-487d-4382-9e2c-45913705240e"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "rt9193-33GB"
+				(path "/6f3aa821-063c-4350-9712-316905d6e52d"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_tinyboard"
+				(path "/8910037c-8349-4bc7-9350-321cf6442cfe/81b6f42d-5faa-4a92-b8ae-8f82a0559c7f"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_oled_board"
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/a3124e3c-f438-42d7-8e0a-006d8822c9bc"
+					(reference "C5")
+					(unit 1)
+				)
+				(path "/8975022a-7573-4ee4-a776-40f4b7f4fc07/f5215a48-88af-4035-b13d-7ee8d2a28e51/d55dccb9-3774-4ecf-82ca-c34c47af92ae/31b8ac61-b0b8-46c3-b4ba-57574b421921"
+					(reference "C1")
+					(unit 1)
+				)
+			)
+			(project "yxd12864驱动开发板"
+				(path "/8c9d309b-4789-4fc3-94d3-ac4d2d803ae9/0b4283a3-1e7b-463d-8c3a-76893dd42e96"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+			(project "PMOD OLED 0.96 竖屏"
+				(path "/928c0aa5-61b6-4d54-85f2-b1c80dd05294/c5c4c507-73ef-4e51-a6c5-9ec36c1f9e3c"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+			(project "CH549 开发板"
+				(path "/a729b66a-db50-4cba-a705-23b26621e283/1ec0a00c-1bc0-43f9-b903-159a102fd9fc"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+			(project "stm32g031g8u6_miniboard"
+				(path "/fd1910c0-07af-45b7-92a4-3a8430d05813/7381cf78-2d3e-46be-883b-f6fa6c731a3d"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+)
